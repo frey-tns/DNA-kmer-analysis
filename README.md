@@ -37,7 +37,7 @@ path_outputs = "/chemin/de/sortie/kmer-analisys"
 ## Utilisation
 Lancer le script :  
 
-python scipt.py (NOM A MODIFIER) 🟠
+python script.py (NOM A MODIFIER) 🟠
 
 ## Output
 Les résultats sont exportés dans un fichier HTML :  
