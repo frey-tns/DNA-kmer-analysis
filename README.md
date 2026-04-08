@@ -3,7 +3,7 @@
 ## Description 
 Logiciel d'analyse des k-mers dans les séquences d'ADN
 
-Le script: 
+Le script : 
 - input: fichier de séquences fasta :
   - Lecture du fichier fasta
   - Stat sur les séquences
@@ -20,23 +20,23 @@ Le script:
   - E-valeur
 
 ## Installation 
-1. Prérequis
+1. Prérequis  
   - Python (version >= 3.x) 
-2. Installation des dépendances
+2. Installation des dépendances  
 ... A COMPLETER ...
 
 ## Input 
 Fichier FASTA contenant les séquences ADN.
 
-→ Modifier chemin d'accès dans le code :
+→ Modifier chemin d'accès dans le code :  
 path_outputs = "/chemin/vers/fichier.fasta"
 
 ## Utilisation
-Lancer le script :
+Lancer le script :  
 python scipt.py (NOM A MODIFIER)
 
 ## Output
-Les résultats sont exportés dans un fichier HTML:
+Les résultats sont exportés dans un fichier HTML :  
 results_test.html (NOM A MODIFIER)
 
 Contient :
