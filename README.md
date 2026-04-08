@@ -23,7 +23,7 @@ Le script :
 1. Prérequis  
   - Python (version >= 3.x) 
 2. Installation des dépendances  
-<span style="color: #FF4500;">... A COMPLETER ...</span>
+<span style="color: #FF4500;">... A COMPLETER ...</span> 
 
 ## Input 
 Fichier FASTA contenant les séquences ADN.
