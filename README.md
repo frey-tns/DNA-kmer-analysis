@@ -23,7 +23,7 @@ Le script :
 1. Prérequis  
   - Python (version >= 3.x) 
 2. Installation des dépendances  
-... A COMPLETER ...
+<span style="color: #FF4500;">... A COMPLETER ...</span>
 
 ## Input 
 Fichier FASTA contenant les séquences ADN.
@@ -35,12 +35,12 @@ path_outputs = "/chemin/vers/fichier.fasta"
 ## Utilisation
 Lancer le script :  
 
-python scipt.py (NOM A MODIFIER)
+python scipt.py <span style="color: #FF4500;">(NOM A MODIFIER)</span>
 
 ## Output
 Les résultats sont exportés dans un fichier HTML :  
 
-results_test.html (NOM A MODIFIER)
+results_test.html <span style="color: #FF4500;">(NOM A MODIFIER)</span>
 
 Contient :
   - occurrences observées (occ)
