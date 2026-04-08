@@ -28,9 +28,11 @@ Le script :
 ## Input 
 Fichier FASTA contenant les séquences ADN.
 
-→ Modifier chemin d'accès dans le code :  
+→ Modifier l'url du fichier fasta :  
+url = "https://lien/vers/le/fichier.fasta"
 
-path_outputs = "/chemin/vers/fichier.fasta"
+→ Modifier le chemin de sortie du fichier :  
+path_outputs = "/chemin/de/sortie/kmer-analisys"
 
 ## Utilisation
 Lancer le script :  
@@ -53,4 +55,4 @@ Contient :
   - E-valeur (ooc_E)
 
 ## Remarque
-- Le chemin des fichiers est acutellement codé en dur (Windows) 
+- Le chemin des fichiers est actuellement codé en dur (Windows) 
