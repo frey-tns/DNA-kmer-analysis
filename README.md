@@ -22,7 +22,7 @@ Le script :
 ## Installation 
 1. Prérequis  
   - Python (version >= 3.x) 
-2. Installation des dépendances  🔴
+2. Installation des dépendances  🔴  
 ... A COMPLETER ... 
 
 ## Input 
