@@ -29,14 +29,17 @@ Le script :
 Fichier FASTA contenant les séquences ADN.
 
 → Modifier chemin d'accès dans le code :  
+
 path_outputs = "/chemin/vers/fichier.fasta"
 
 ## Utilisation
 Lancer le script :  
+
 python scipt.py (NOM A MODIFIER)
 
 ## Output
 Les résultats sont exportés dans un fichier HTML :  
+
 results_test.html (NOM A MODIFIER)
 
 Contient :
