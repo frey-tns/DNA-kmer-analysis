@@ -12,6 +12,8 @@ from collections import Counter # count (cf k-mer count)
 #   Paths   #
 #############
 
+## Requested enhancement: https://github.com/frey-tns/DNA-kmer-analysis/issues/2
+
 # Output directory
 path_output = r"C:\Users\Anouk\Documents\Master1_bsg\Stage"
 
@@ -24,7 +26,7 @@ outputs_file = (f"{path_output}\\kmer-analisys.txt")
 # Input: Fasta file from RSAT website (DEMO)        #
 #                                                   #
 # Outputs: - Number of sequence in the fasta file   #
-#          - Sum of lenght                          #
+#          - Sum of lengths                         #
 #####################################################
 
 ## READ FASTA FILE
