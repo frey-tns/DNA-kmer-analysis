@@ -22,9 +22,9 @@ Le script :
 ## Installation 
 1. Prérequis  
   - Python (version >= 3.x) 
-2. Installation des dépendances  🔴
-pip install requests
-pip install argparse
+2. Installation des dépendances  🔴  
+pip install requests  
+pip install argparse  
 
 ... A COMPLETER ... 
 
