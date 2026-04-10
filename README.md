@@ -22,7 +22,10 @@ Le script :
 ## Installation 
 1. Prérequis  
   - Python (version >= 3.x) 
-2. Installation des dépendances  🔴  
+2. Installation des dépendances  🔴
+pip install requests
+pip install argparse
+
 ... A COMPLETER ... 
 
 ## Input 
@@ -31,8 +34,8 @@ Fichier FASTA contenant les séquences ADN.
 → Modifier l'url du fichier fasta :  
 url = "https://lien/vers/le/fichier.fasta"
 
-→ Modifier le chemin de sortie du fichier :  
-path_outputs = "/chemin/de/sortie/kmer-analisys"
+→ Ajouter un chemin de sortie au fichier dans un terminal bash :  
+'python kmer-analysis.py -o chemin/vers/result.html'
 
 ## Utilisation
 Lancer le script :  
