@@ -209,3 +209,13 @@ __marimo__/
 
 .Rhistory
 .idea
+
+results.html
+
+stage_tagc.py
+
+test.py
+
+test_kmer-analisys.py
+
+test_stage_tagc.py
