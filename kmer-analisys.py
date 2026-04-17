@@ -1,6 +1,6 @@
 __authors__ = ("Anouk RISCH")
 __contact__ = ("anouk.risch@etu.univ-amu.fr")
-__date__ = "2026-04-14"
+__date__ = "2026-04-17"
 __version__ = "1.2"
 
 #################
@@ -69,7 +69,7 @@ def read_fasta(url):
             # If there is a key in sequences dictionary
             if current_id != "":
                 # Adds DNA sequence as value in sequences dictionary
-                dico_sequences[current_id] += line
+                dico_sequences[current_id] += line.upper()
 
     ## STAT
 
@@ -87,8 +87,24 @@ def read_fasta(url):
 ####################################################
 def reverse_complementary(kmer_seq):
     # Create complementary reverse dictionary
-    dico_complement = {"A":"T","T":"A","C":"G","G":"C"}
+    dico_complement = {"A":"T",
+                       "T":"A",
+                       "C":"G",
+                       "G":"C"}
+
     return "".join(dico_complement[base] for base in reversed(kmer_seq))
+
+#####################################
+#      Function: Canonical Kmer     #
+# Merge kmer + reverse complement   #
+#####################################
+def canonic_kmer(kmer):
+    # Kmer reverse complement
+    reverse_kmer = reverse_complementary(kmer)
+
+    # Keep the smallest alphabetically
+    return min(kmer, reverse_kmer)
+
 
 #########################################
 #   Function: nucleotides frequencies   #
@@ -100,33 +116,65 @@ def nucleotide_frequencies(sequences):
     counts = Counter()
 
     for seq in sequences.values():
-        # Count each letter (+1 for each letter)
-        counts.update(seq)
-        # Adds the length of the sequence
-        total += len(seq)
+        for base in seq:
+            # Ignore N nucleotide
+            if base in "ACTG":
+                # Count each letter (+1 for each letter)
+                counts[base] += 1
+                # Total number of nucleotides
+                total += 1
 
     # Create dico contain expected frequency for each base
-    frequencies = {nuc: counts[nuc] / total for nuc in "ATGC"}
+    frequencies = {base: counts[base] / total for base in "ATGC"}
+
     return frequencies
 
 #########################################
 #   Function : Excepted frequencies     #
 #########################################
 def expected_frequencies(single_kmer, frequencies):
+
     probability = 1
+
     for base in single_kmer:
-        # Expected number of occurrences for word
+        # Expected number of occurrences for each base
         probability *= frequencies[base]
 
     return probability
+
+#####################################
+#   Function : Count observed kmer  #
+#####################################
+def counts_kmer(k_length, sequence):
+
+    # Initialize a dictionary counter where key is kmer and value is the number of times it was counted
+    kmer_count = Counter()
+
+    for  seq_fasta in sequence.values():
+       # Explore all possible positions
+       for i_position in range(len(seq_fasta) - k_length + 1):
+           # Extract kmer
+           kmer = seq_fasta[i_position: i_position + k_length]
+
+           # Exclude unknow nucleotides
+           if "N" in kmer:
+               continue
+
+           # Kmer found at this position, after reverse complement fusion
+           canon_kmer = canonic_kmer(kmer)
+           # +1 every time we see a pattern
+           kmer_count[canon_kmer] += 1
+
+    return kmer_count
 
 ###################
 #   Main code     #
 ###################
 def main():
-    #############
-    #   Paths   #
-    #############
+
+    ############################
+    #   Command line options   #
+    ############################
 
     ## OUTPUT DIRECTORY FILE
 
@@ -141,13 +189,14 @@ def main():
     output_file = args.output
 
     ## CONDITION : does the files already exist ?
+
     # Extract the folder from the full path
     folder = os.path.dirname(output_file)
 
     # If the folder is not empty and doesn't already exist :
     if folder and not os.path.exists(folder):
         # Warning message
-        print("Creating folder {}".format(folder))
+        print(f"Creating folder {folder}")
         # Create the folder
         os.makedirs(folder)
 
@@ -156,7 +205,7 @@ def main():
     #############################################
 
     # Input URL of the FASTA file
-    url = input("URL of the sequence : ")
+    url = input("URL of the FASTA file : ")
 
     # REFERENCE URL
     # https://rsat.eead.csic.es/plants/tmp/www-data/2026/04/08/tmp_sequence_2026-04-08.113931_zOkxjo.fasta
@@ -169,14 +218,7 @@ def main():
     ######################
     #   Create k-mer     #
     ######################
-
-    # List of nucleotide
-    list_nucl = ['A','C','G','T']
-    # Length k-mer in base pair
     k_length = int(input("Enter k-mer length (1-10): "))
-
-    # Generates all combinations to create pattern
-    k_mer = ["".join(p) for p in product(list_nucl, repeat = k_length)]
 
     # print(k_mer)
     # # Length k-mer
@@ -190,28 +232,47 @@ def main():
     frequencies = nucleotide_frequencies(sequences)
     #print(f"Nucleotides frequencies : {frequencies}")
 
+    observed_kmer_count = counts_kmer(k_length, sequences)
     # Number of all positions T = L - K + 1
     total_positions = sum(len(seq) - k_length + 1 for seq in sequences.values())
 
     # List who contain output results
     result_analysis = []
 
-    for single_kmer in k_mer:
+    # Treat only once the same canonical kmer
+    dico_canon_kmer = set()
+
+    # Browses the dictionary of observed k-mers.
+    for canon_kmer, occ in observed_kmer_count.items():
+
+        # Kmer inverse complement
+        reverse_kmer = reverse_complementary(canon_kmer)
+
+        # If the canon kmer has already been dealt with
+        if canon_kmer in dico_canon_kmer:
+            # Ignore it
+            continue
+
+        dico_canon_kmer.add(canon_kmer)
+
+        threshold = 1
+        if occ < threshold:
+            continue
+
         # Expected frequencies
-        exp_freq = expected_frequencies(single_kmer, frequencies)
+        exp_freq = expected_frequencies(canon_kmer, frequencies)
         # Expected occurrences
         exp_occ = total_positions * exp_freq
-        # Reverse complementary
-        rev_comp = reverse_complementary(single_kmer)
-
-        # Oligomer ID = k-mer + reverse complement
-        oligomer_id = f"{single_kmer}|{rev_comp}"
+        # Observed frequencies
+        obs_freq = occ / total_positions
 
         # Stockage in list oligomers
-        result_analysis.append({"seq": single_kmer,
-                                "id": oligomer_id,
+        result_analysis.append({"seq": canon_kmer,
+                                "id": f"{canon_kmer}|{reverse_kmer}",
                                 "exp_freq": exp_freq,
-                                "exp_occ": exp_occ})
+                                "exp_occ": exp_occ,
+                                "occ": occ,
+                                "obs_freq": obs_freq})
 
     #####################
     #   Output file     #
@@ -264,13 +325,15 @@ def main():
         tsv_file.write(f";seq\t oligomer sequence\n"
                        f";id\t oligomer identifier\n"
                        f";exp_freq\t expected relative frequency\n"
+                       f";obs_freq\t observed relative frequency\n"
+                       f";occ\t observed occurrences\n"
                        f";exp_occ\t expected occurrences\n\n")
 
         # Kmer analysis table headers
-        tsv_file.write(f"#seq\tid\texp_freq\texp_occ\n")
+        tsv_file.write(f"#seq\tid\texp_freq\tobs_freq\tocc\texp_occ\n")
         for row in result_analysis:
             # kmer analysis table
-            tsv_file.write(f"{row['seq']}\t{row['id']}\t{row['exp_freq']}\t{row['exp_occ']}\n")
+            tsv_file.write(f"{row['seq']}\t{row['id']}\t{row['exp_freq']}\t{row['obs_freq']}\t{row['occ']}\t{row['exp_occ']}\n")
 
         # Double return to the line
         tsv_file.write(f"\n\n")
