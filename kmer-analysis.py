@@ -203,12 +203,12 @@ def main():
     #############################################
     #   Defined the address of the fasta file   #
     #############################################
+    # REFERENCE URL
+    print("Reference URL : https://rsat.eead.csic.es/plants/tmp/www-data/2026/04/08/tmp_sequence_2026-04-08.113931_zOkxjo.fasta")
 
     # Input URL of the FASTA file
     url = input("URL of the FASTA file : ")
 
-    # REFERENCE URL
-    # https://rsat.eead.csic.es/plants/tmp/www-data/2026/04/08/tmp_sequence_2026-04-08.113931_zOkxjo.fasta
     sequences, total_length = read_fasta(url)
 
     ## Access to a specific sequence
