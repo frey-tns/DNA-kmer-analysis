@@ -1,6 +1,6 @@
 __authors__ = ("Anouk RISCH")
 __contact__ = ("anouk.risch@etu.univ-amu.fr")
-__date__ = "2026-04-17"
+__date__ = "2026-04-20"
 __version__ = "1.2"
 
 #################
@@ -10,8 +10,11 @@ __version__ = "1.2"
 import argparse
 # Interaction with the operating system for file management and manipulation
 import os
+import time
 import datetime
 
+
+from tqdm import tqdm
 from collections import Counter # count (cf k-mer count)
 
 #####################################################
@@ -46,7 +49,7 @@ def read_fasta(file_path):
 
     with open(file_path, "r") as fasta_file:
         # For each line present in FASTA file
-        for line in fasta_file:
+        for line in tqdm(fasta_file, desc="Reading FASTA file"):
             # Remove the spaces on the right
             line = line.rstrip()
 
@@ -141,7 +144,7 @@ def counts_kmer(k_length, sequence):
     # Initialize a dictionary counter where key is kmer and value is the number of times it was counted
     kmer_count = Counter()
 
-    for  seq_fasta in sequence.values():
+    for seq_fasta in tqdm(sequence.values(), desc="Counting k-mers"):
        # Explore all possible positions
        for i_position in range(len(seq_fasta) - k_length + 1):
            # Extract kmer
@@ -163,6 +166,8 @@ def counts_kmer(k_length, sequence):
 ###################
 def main():
 
+    # Time tracking (Benchmark)
+    start_time = time.perf_counter()
     ############################
     #   Command line options   #
     ############################
@@ -283,9 +288,6 @@ def main():
     # # Convert DataFrame into HTML format
     # df_HTML = df.to_html(escape=False, index=False)
 
-    # Time tracking
-    start_time = datetime.datetime.now()
-
     # If the output path is a folder
     if os.path.isdir(output_file):
         # Define output path
@@ -338,14 +340,15 @@ def main():
         tsv_file.write(f"\n\n")
 
         # End time
-        end_time = datetime.datetime.now()
+        end_time = time.perf_counter()
         duration = end_time - start_time
 
         tsv_file.write(f"; Job started\t{start_time}\n"
                        f"; Job done\t{end_time}\n"
-                       f"; Job duration\t{duration.seconds} seconds\n")
+                       f"; Job duration\t{duration:.3f} seconds\n")
 
     print(f"Output written to {output_path}")
+    print(f"Duration : {duration:.3f} seconds\n")
 
 #####################
 #   Executing code  #
