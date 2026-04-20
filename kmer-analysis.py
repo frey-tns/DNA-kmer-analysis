@@ -13,11 +13,7 @@ import os
 import time
 import datetime
 
-<<<<<<< HEAD
-
 from tqdm import tqdm
-=======
->>>>>>> origin/8-passing-all-parameters-as-command-line
 from collections import Counter # count (cf k-mer count)
 
 #####################################################
@@ -52,11 +48,7 @@ def read_fasta(file_path):
 
     with open(file_path, "r") as fasta_file:
         # For each line present in FASTA file
-<<<<<<< HEAD
         for line in tqdm(fasta_file, desc="Reading FASTA file"):
-=======
-        for line in fasta_file:
->>>>>>> origin/8-passing-all-parameters-as-command-line
             # Remove the spaces on the right
             line = line.rstrip()
 
@@ -146,7 +138,7 @@ def expected_frequencies(single_kmer, frequencies):
 #####################################
 #   Function : Count observed kmer  #
 #####################################
-def counts_kmer(k_length, sequence):
+def counts_kmer(k_length, sequence, strand_mode):
 
     # Initialize a dictionary counter where key is kmer and value is the number of times it was counted
     kmer_count = Counter()
@@ -161,10 +153,16 @@ def counts_kmer(k_length, sequence):
            if "N" in kmer:
                continue
 
+           if strand_mode == "reverse_complement":
+               key = canonic_kmer(kmer)
+
+           else:
+               # single strand (forward)
+               key = kmer
+
            # Kmer found at this position, after reverse complement fusion
-           canon_kmer = canonic_kmer(kmer)
            # +1 every time we see a pattern
-           kmer_count[canon_kmer] += 1
+           kmer_count[key] += 1
 
     return kmer_count
 
@@ -175,6 +173,8 @@ def main():
 
     # Time tracking (Benchmark)
     start_time = time.perf_counter()
+    # Job started
+    start_time_date = datetime.datetime.now()
     ############################
     #   Command line options   #
     ############################
@@ -197,8 +197,14 @@ def main():
                         required=True,
                         help="Path to the output file directory")
 
+    parser.add_argument("--strand",
+                        choices=["forward", "reverse_complement"],
+                        default="forward",
+                        help="Strand of k-mer sequence (forward or reverse_complement)")
+
     # Reads the command typed in the terminal
     args = parser.parse_args()
+    strand_mode = args.strand
     # Define variable to use the value in the script
     input_file = args.input
     kmer_length = args.kmer_length
@@ -242,7 +248,7 @@ def main():
     frequencies = nucleotide_frequencies(sequences)
     #print(f"Nucleotides frequencies : {frequencies}")
 
-    observed_kmer_count = counts_kmer(k_length, sequences)
+    observed_kmer_count = counts_kmer(k_length, sequences, strand_mode)
     # Number of all positions T = L - K + 1
     total_positions = sum(len(seq) - k_length + 1 for seq in sequences.values())
 
@@ -255,8 +261,15 @@ def main():
     # Browses the dictionary of observed k-mers.
     for canon_kmer, occ in observed_kmer_count.items():
 
-        # Kmer inverse complement
-        reverse_kmer = reverse_complementary(canon_kmer)
+        if strand_mode == "reverse_complement":
+            canon_kmer = canonic_kmer(canon_kmer)
+            # Kmer inverse complement
+            reverse_kmer = reverse_complementary(canon_kmer)
+            kmer_id = f"{canon_kmer}|{reverse_kmer}"
+
+        else:
+            canon_kmer = canon_kmer
+            kmer_id = canon_kmer
 
         # If the canon kmer has already been dealt with
         if canon_kmer in dico_canon_kmer:
@@ -278,7 +291,7 @@ def main():
 
         # Stockage in list oligomers
         result_analysis.append({"seq": canon_kmer,
-                                "id": f"{canon_kmer}|{reverse_kmer}",
+                                "id": kmer_id,
                                 "exp_freq": exp_freq,
                                 "exp_occ": exp_occ,
                                 "occ": occ,
@@ -316,6 +329,7 @@ def main():
                        f"; Input file\t{input_file}\n"
                        f"; Input format\tFasta\n"
                        f"; Output file\t{output_path}\n"
+                       f"; Strand mode\t{strand_mode}\n"
                        f"; Oligomer length\t{k_length}\n\n")
 
         # Summary
@@ -341,22 +355,20 @@ def main():
         tsv_file.write(f"# seq\tid\texp_freq\tobs_freq\tocc\texp_occ\n")
         for row in result_analysis:
             # kmer analysis table
-            tsv_file.write(f"{row['seq']}\t{row['id']}\t{row['exp_freq']}\t{row['obs_freq']}\t{row['occ']}\t{row['exp_occ']}\n")
+            tsv_file.write(f"{row['seq']}\t{row['id']}\t{row['exp_freq']}\t{row['obs_freq']}\t{row['occ']}\t{row['exp_occ']:.2f}\n")
 
         # Double return to the line
         tsv_file.write(f"\n\n")
 
         # End time
         end_time = time.perf_counter()
+        # Job ending
+        end_time_date = datetime.datetime.now()
         duration = end_time - start_time
 
-        tsv_file.write(f"; Job started\t{start_time}\n"
-                       f"; Job done\t{end_time}\n"
-<<<<<<< HEAD
+        tsv_file.write(f"; Job started\t{start_time_date}\n"
+                       f"; Job done\t{end_time_date}\n"
                        f"; Job duration\t{duration:.3f} seconds\n")
-=======
-                       f"; Job duration\t{duration.seconds} seconds\n")
->>>>>>> origin/8-passing-all-parameters-as-command-line
 
     print(f"Output written to {output_path}")
     print(f"Duration : {duration:.3f} seconds\n")
