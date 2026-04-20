@@ -13,8 +13,11 @@ import os
 import time
 import datetime
 
+<<<<<<< HEAD
 
 from tqdm import tqdm
+=======
+>>>>>>> origin/8-passing-all-parameters-as-command-line
 from collections import Counter # count (cf k-mer count)
 
 #####################################################
@@ -49,7 +52,11 @@ def read_fasta(file_path):
 
     with open(file_path, "r") as fasta_file:
         # For each line present in FASTA file
+<<<<<<< HEAD
         for line in tqdm(fasta_file, desc="Reading FASTA file"):
+=======
+        for line in fasta_file:
+>>>>>>> origin/8-passing-all-parameters-as-command-line
             # Remove the spaces on the right
             line = line.rstrip()
 
@@ -345,7 +352,11 @@ def main():
 
         tsv_file.write(f"; Job started\t{start_time}\n"
                        f"; Job done\t{end_time}\n"
+<<<<<<< HEAD
                        f"; Job duration\t{duration:.3f} seconds\n")
+=======
+                       f"; Job duration\t{duration.seconds} seconds\n")
+>>>>>>> origin/8-passing-all-parameters-as-command-line
 
     print(f"Output written to {output_path}")
     print(f"Duration : {duration:.3f} seconds\n")
