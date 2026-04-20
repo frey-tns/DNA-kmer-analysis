@@ -6,18 +6,12 @@ __version__ = "1.2"
 #################
 #   Libraries   #
 #################
-# For HTTP requests
-import requests
 # To parser for command-line arguments
 import argparse
 # Interaction with the operating system for file management and manipulation
 import os
 import datetime
-# For HTML result
-import pandas as pd
 
-# For generate all possible combinations with repetition
-from itertools import product
 from collections import Counter # count (cf k-mer count)
 
 #####################################################
@@ -30,46 +24,44 @@ from collections import Counter # count (cf k-mer count)
 #####################################################
 
 ## READ FASTA FILE
-def read_fasta(url):
+def read_fasta(file_path):
     """
-    Load and read FASTA file from URL.
+    Load and read FASTA file from local path.
 
     Args:
-        url (str): FASTA file URL.
+        path file (str): FASTA file.
 
     Returns:
         dict: dictionary {ID : sequence}
     """
 
-    # HTTP request
-    response = requests.get(url)
-    # Status code HTTP
-    if response.status_code != 200:
-        raise Exception(f"FASTA download error ({response.status_code})")
-    # Create variable who contain the FASTA file
-    fasta_file = response.text
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Input FASTA file not found: {file_path}\n"
+                                f"Check working directory or use absolute path.")
 
     # Initialize dictionary who contain FASTA sequences
     dico_sequences = {}
     # Initialize FASTA ID as an empty string
     current_id = ""
 
-    # For each line present in FASTA file
-    for line in fasta_file.splitlines():
-        # Remove the spaces on the right
-        line = line.rstrip()
-        # FASTA pipe detection
-        if line.startswith(">"):
-            # Extract ID
-            current_id = line[1:].split()[0]
-            # Adds FASTA ID as key in sequences dictionary
-            dico_sequences[current_id] = ""
+    with open(file_path, "r") as fasta_file:
+        # For each line present in FASTA file
+        for line in fasta_file:
+            # Remove the spaces on the right
+            line = line.rstrip()
 
-        else:
-            # If there is a key in sequences dictionary
-            if current_id != "":
-                # Adds DNA sequence as value in sequences dictionary
-                dico_sequences[current_id] += line.upper()
+            # FASTA pipe detection
+            if line.startswith(">"):
+                # Extract ID
+                current_id = line[1:].split()[0]
+                # Adds FASTA ID as key in sequences dictionary
+                dico_sequences[current_id] = ""
+
+            else:
+                # If there is a key in sequences dictionary
+                if current_id != "":
+                    # Adds DNA sequence as value in sequences dictionary
+                    dico_sequences[current_id] += line.upper()
 
     ## STAT
 
@@ -104,7 +96,6 @@ def canonic_kmer(kmer):
 
     # Keep the smallest alphabetically
     return min(kmer, reverse_kmer)
-
 
 #########################################
 #   Function: nucleotides frequencies   #
@@ -179,14 +170,28 @@ def main():
     ## OUTPUT DIRECTORY FILE
 
     # Specify which command-line options the program is willing to accept
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="k-mer analysis")
     # Define args used by the user (here output path)
-    parser.add_argument("-o", "--output", required=True, help="Path to the output file directory")
+    parser.add_argument("-i", "--input",
+                        required=True,
+                        help="Path to the input fasta file")
+
+    parser.add_argument("-k", "--kmer-length",
+                        required=True,
+                        type=int,
+                        help="Length of k-mer sequence (1-10)")
+
+    parser.add_argument("-o", "--output",
+                        required=True,
+                        help="Path to the output file directory")
 
     # Reads the command typed in the terminal
     args = parser.parse_args()
     # Define variable to use the value in the script
+    input_file = args.input
+    kmer_length = args.kmer_length
     output_file = args.output
+
 
     ## CONDITION : does the files already exist ?
 
@@ -203,22 +208,15 @@ def main():
     #############################################
     #   Defined the address of the fasta file   #
     #############################################
-    # REFERENCE URL
-    print("Reference URL : https://rsat.eead.csic.es/plants/tmp/www-data/2026/04/08/tmp_sequence_2026-04-08.113931_zOkxjo.fasta")
-
     # Input URL of the FASTA file
-    url = input("URL of the FASTA file : ")
+    url = input_file
 
     sequences, total_length = read_fasta(url)
-
-    ## Access to a specific sequence
-    #print(sequences.keys())
-    #print(sequences["MET8"])
 
     ######################
     #   Create k-mer     #
     ######################
-    k_length = int(input("Enter k-mer length (1-10): "))
+    k_length = kmer_length
 
     # print(k_mer)
     # # Length k-mer
@@ -303,34 +301,35 @@ def main():
 
         ## Parameter
         # Command line
-        tsv_file.write(f";Command\tpython3 kmer-analysis.py -o {output_path} -k {k_length} -u {url}\n\n")
+        tsv_file.write(f"; Command\tpython3 kmer-analysis.py -i {input_file} -k {kmer_length} -o {output_path}\n\n")
         # URL in input
-        tsv_file.write(f";Fasta URL\t{url}\n"
-                       f";Input format\tFasta\n"
-                       f";Output file\t{output_path}\n"
-                       f";Oligomer length\t{k_length}\n\n")
+        tsv_file.write(f"; Fasta URL\t{url}\n"
+                       f"; Input file\t{input_file}\n"
+                       f"; Input format\tFasta\n"
+                       f"; Output file\t{output_path}\n"
+                       f"; Oligomer length\t{k_length}\n\n")
 
         # Summary
-        tsv_file.write(f";Sequence type\tDNA\n"
-                       f";Nb of sequence\t{len(sequences)}\n"
-                       f";Sum of sequence lengths\t{total_length}\n"
-                       f";Sequences:\n")
+        tsv_file.write(f"; Sequence type\tDNA\n"
+                       f"; Nb of sequence\t{len(sequences)}\n"
+                       f"; Sum of sequence lengths\t{total_length}\n"
+                       f"; Sequences:\n")
         for seq_id, seq_fasta in sequences.items():
-            tsv_file.write(f";\t{seq_id}\t{len(seq_fasta)}\n")
+            tsv_file.write(f"#\t{seq_id}\t{len(seq_fasta)}\n")
 
         tsv_file.write(f"\n\n")
 
         # Column headers
-        tsv_file.write(f";column headers\n")
-        tsv_file.write(f";seq\t oligomer sequence\n"
-                       f";id\t oligomer identifier\n"
-                       f";exp_freq\t expected relative frequency\n"
-                       f";obs_freq\t observed relative frequency\n"
-                       f";occ\t observed occurrences\n"
-                       f";exp_occ\t expected occurrences\n\n")
+        tsv_file.write(f"; column headers\n")
+        tsv_file.write(f"; seq\t oligomer sequence\n"
+                       f"; id\t oligomer identifier\n"
+                       f"; exp_freq\t expected relative frequency\n"
+                       f"; obs_freq\t observed relative frequency\n"
+                       f"; occ\t observed occurrences\n"
+                       f"; exp_occ\t expected occurrences\n\n")
 
         # Kmer analysis table headers
-        tsv_file.write(f"#seq\tid\texp_freq\tobs_freq\tocc\texp_occ\n")
+        tsv_file.write(f"# seq\tid\texp_freq\tobs_freq\tocc\texp_occ\n")
         for row in result_analysis:
             # kmer analysis table
             tsv_file.write(f"{row['seq']}\t{row['id']}\t{row['exp_freq']}\t{row['obs_freq']}\t{row['occ']}\t{row['exp_occ']}\n")
@@ -342,9 +341,9 @@ def main():
         end_time = datetime.datetime.now()
         duration = end_time - start_time
 
-        tsv_file.write(f";Job started\t{start_time}\n"
-                       f";Job done\t{end_time}\n"
-                       f";Job duration\t{duration.seconds} seconds\n")
+        tsv_file.write(f"; Job started\t{start_time}\n"
+                       f"; Job done\t{end_time}\n"
+                       f"; Job duration\t{duration.seconds} seconds\n")
 
     print(f"Output written to {output_path}")
 
