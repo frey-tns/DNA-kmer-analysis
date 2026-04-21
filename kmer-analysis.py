@@ -198,9 +198,9 @@ def main():
                         help="Path to the output file directory")
 
     parser.add_argument("--strand",
-                        choices=["forward", "reverse_complement"],
-                        default="forward",
-                        help="Strand of k-mer sequence (forward or reverse_complement)")
+                        choices=["single", "both"],
+                        default="single",
+                        help="Sequence strand(s) to take into account for k-mer counting. Accepted values: single, only count the occurrences on forward strand; both: count on both forward and reverse strands.)")
 
     # Reads the command typed in the terminal
     args = parser.parse_args()
