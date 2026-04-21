@@ -206,7 +206,7 @@ def main():
                         required=True,
                         help="Path to the output file directory")
 
-    parser.add_argument("--strand",
+    parser.add_argument("-s", "--strand",
                         choices=["single", "both"],
                         default="single",
                         help="Sequence strand(s) to take into account for k-mer counting. Accepted values: single, only count the occurrences on forward strand; both: count on both forward and reverse strands.)")
