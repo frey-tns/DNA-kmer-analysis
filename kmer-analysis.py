@@ -13,6 +13,8 @@ import os
 # For Benchmark
 import time
 import datetime
+import sys
+import shlex
 
 from tqdm import tqdm
 from collections import Counter # count (cf k-mer count)
@@ -418,7 +420,7 @@ def main():
 
         ## Parameter
         # Command line
-        tsv_file.write(f"; Command\tpython3 kmer-analysis.py -i {input_file} -k {kmer_length} -o {output_path}\n;\n")
+        tsv_file.write(f"; Command\t{' '.join(shlex.quote(arg) for arg in sys.argv)}\n;\n")
         # URL in input
         tsv_file.write(f"; Fasta URL\t{fasta_file}\n"
                        f"; Input file\t{input_file}\n"
