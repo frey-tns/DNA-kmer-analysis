@@ -1,6 +1,6 @@
 __authors__ = ("Anouk RISCH")
 __contact__ = ("anouk.risch@etu.univ-amu.fr")
-__date__ = "2026-04-20"
+__date__ = "2026-04-21"
 __version__ = "1.2"
 
 #################
@@ -10,11 +10,15 @@ __version__ = "1.2"
 import argparse
 # Interaction with the operating system for file management and manipulation
 import os
+# For Benchmark
 import time
 import datetime
 
 from tqdm import tqdm
 from collections import Counter # count (cf k-mer count)
+# Coloring warning text
+from colorama import init, Fore
+init(autoreset=True)
 
 #####################################################
 #    Function to read and give stat on Fasta file   #
@@ -37,8 +41,10 @@ def read_fasta(file_path):
         dict: dictionary {ID : sequence}
     """
 
+    # Did file path already exist
     if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Input FASTA file not found: {file_path}\n"
+        # If not stop the program
+        raise FileNotFoundError(f"{Fore.RED}[ERROR] Input FASTA file not found: {file_path}\n"
                                 f"Check working directory or use absolute path.")
 
     # Initialize dictionary who contain FASTA sequences
@@ -68,11 +74,11 @@ def read_fasta(file_path):
     ## STAT
 
     # Number of sequence
-    print(f"{len(dico_sequences)} loaded sequences")
+    print(f"{Fore.CYAN}{len(dico_sequences)} loaded sequences")
 
     # Sum of lengths
     total_length = sum(len(seq) for seq in dico_sequences.values())
-    print(f"Sum of lengths : {total_length}")
+    print(f"{Fore.CYAN}Sum of lengths : {total_length}")
 
     return dico_sequences, total_length
 
@@ -86,11 +92,12 @@ def reverse_complementary(kmer_seq):
                        "C":"G",
                        "G":"C"}
 
+    # Trace the Kmer backwards and replace each base with its complement
     return "".join(dico_complement[base] for base in reversed(kmer_seq))
 
 #####################################
 #      Function: Canonical Kmer     #
-# Merge kmer + reverse complement   #
+#  Merge kmer + reverse complement  #
 #####################################
 def canonic_kmer(kmer):
     # Kmer reverse complement
@@ -105,7 +112,8 @@ def canonic_kmer(kmer):
 def nucleotide_frequencies(sequences):
     # Initialization total number of nucleotides
     total = 0
-    # Initialization counter (A, T, G, C)
+    # Initialization a dictionary counter where key is base and value the number of times it was counted
+    # {"A":0, "T":0, "G":0, "C":0}
     counts = Counter()
 
     for seq in sequences.values():
@@ -143,6 +151,7 @@ def counts_kmer(k_length, sequence, strand_mode):
     # Initialize a dictionary counter where key is kmer and value is the number of times it was counted
     kmer_count = Counter()
 
+    # Progress bar
     for seq_fasta in tqdm(sequence.values(), desc="Counting k-mers"):
        # Explore all possible positions
        for i_position in range(len(seq_fasta) - k_length + 1):
@@ -197,19 +206,19 @@ def main():
                         required=True,
                         help="Path to the output file directory")
 
-    parser.add_argument("--strand",
+    parser.add_argument("-s", "--strand",
                         choices=["forward", "reverse_complement"],
                         default="forward",
                         help="Strand of k-mer sequence (forward or reverse_complement)")
 
     # Reads the command typed in the terminal
     args = parser.parse_args()
-    strand_mode = args.strand
+
     # Define variable to use the value in the script
     input_file = args.input
     kmer_length = args.kmer_length
     output_file = args.output
-
+    strand_mode = args.strand
 
     ## CONDITION : does the files already exist ?
 
@@ -219,7 +228,7 @@ def main():
     # If the folder is not empty and doesn't already exist :
     if folder and not os.path.exists(folder):
         # Warning message
-        print(f"Creating folder {folder}")
+        print(f"{Fore.YELLOW}Creating folder {folder}")
         # Create the folder
         os.makedirs(folder)
 
@@ -227,18 +236,9 @@ def main():
     #   Defined the address of the fasta file   #
     #############################################
     # Input URL of the FASTA file
-    url = input_file
+    fasta_file = input_file
 
-    sequences, total_length = read_fasta(url)
-
-    ######################
-    #   Create k-mer     #
-    ######################
-    k_length = kmer_length
-
-    # print(k_mer)
-    # # Length k-mer
-    # print("Total number of k-mer :", len(k_mer))
+    sequences, total_length = read_fasta(fasta_file)
 
     ###################
     #    Statistics   #
@@ -246,11 +246,10 @@ def main():
 
     # Nucleotides frequency
     frequencies = nucleotide_frequencies(sequences)
-    #print(f"Nucleotides frequencies : {frequencies}")
 
-    observed_kmer_count = counts_kmer(k_length, sequences, strand_mode)
+    observed_kmer_count = counts_kmer(kmer_length, sequences, strand_mode)
     # Number of all positions T = L - K + 1
-    total_positions = sum(len(seq) - k_length + 1 for seq in sequences.values())
+    total_positions = sum(len(seq) - kmer_length + 1 for seq in sequences.values())
 
     # List who contain output results
     result_analysis = []
@@ -265,10 +264,12 @@ def main():
             canon_kmer = canonic_kmer(canon_kmer)
             # Kmer inverse complement
             reverse_kmer = reverse_complementary(canon_kmer)
+            # Define ID
             kmer_id = f"{canon_kmer}|{reverse_kmer}"
 
         else:
             canon_kmer = canon_kmer
+            # Define ID
             kmer_id = canon_kmer
 
         # If the canon kmer has already been dealt with
@@ -325,12 +326,12 @@ def main():
         # Command line
         tsv_file.write(f"; Command\tpython3 kmer-analysis.py -i {input_file} -k {kmer_length} -o {output_path}\n\n")
         # URL in input
-        tsv_file.write(f"; Fasta URL\t{url}\n"
+        tsv_file.write(f"; Fasta URL\t{fasta_file}\n"
                        f"; Input file\t{input_file}\n"
                        f"; Input format\tFasta\n"
                        f"; Output file\t{output_path}\n"
                        f"; Strand mode\t{strand_mode}\n"
-                       f"; Oligomer length\t{k_length}\n\n")
+                       f"; Oligomer length\t{kmer_length}\n\n")
 
         # Summary
         tsv_file.write(f"; Sequence type\tDNA\n"
@@ -370,8 +371,8 @@ def main():
                        f"; Job done\t{end_time_date}\n"
                        f"; Job duration\t{duration:.3f} seconds\n")
 
-    print(f"Output written to {output_path}")
-    print(f"Duration : {duration:.3f} seconds\n")
+    print(f"{Fore.GREEN}Output written to {output_path}")
+    print(f"{Fore.CYAN}Duration : {duration:.3f} seconds\n")
 
 #####################
 #   Executing code  #
