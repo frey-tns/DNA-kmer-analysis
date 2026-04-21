@@ -418,14 +418,14 @@ def main():
 
         ## Parameter
         # Command line
-        tsv_file.write(f"; Command\tpython3 kmer-analysis.py -i {input_file} -k {kmer_length} -o {output_path}\n\n")
+        tsv_file.write(f"; Command\tpython3 kmer-analysis.py -i {input_file} -k {kmer_length} -o {output_path}\n;\n")
         # URL in input
         tsv_file.write(f"; Fasta URL\t{fasta_file}\n"
                        f"; Input file\t{input_file}\n"
                        f"; Input format\tFasta\n"
                        f"; Output file\t{output_path}\n"
                        f"; Strand mode\t{strand_mode}\n"
-                       f"; Oligomer length\t{kmer_length}\n\n")
+                       f"; Oligomer length\t{kmer_length}\n;\n")
 
         # Summary
         tsv_file.write(f"; Sequence type\tDNA\n"
@@ -435,7 +435,7 @@ def main():
         for seq_id, seq_fasta in sequences.items():
             tsv_file.write(f"#\t{seq_id}\t{len(seq_fasta)}\n")
 
-        tsv_file.write(f"\n\n")
+        tsv_file.write(f";\n;\n")
 
         # Column headers
         tsv_file.write(f"; column headers\n")
@@ -444,7 +444,7 @@ def main():
                        f"; exp_freq\t expected relative frequency\n"
                        f"; obs_freq\t observed relative frequency\n"
                        f"; occ\t observed occurrences\n"
-                       f"; exp_occ\t expected occurrences\n\n")
+                       f"; exp_occ\t expected occurrences\n;\n")
 
         # Kmer analysis table headers
         tsv_file.write(f"# seq\tid\texp_freq\tobs_freq\tocc\texp_occ\n")
@@ -453,7 +453,7 @@ def main():
             tsv_file.write(f"{row['seq']}\t{row['id']}\t{row['exp_freq']}\t{row['obs_freq']}\t{row['occ']}\t{row['exp_occ']:.2f}\n")
 
         # Double return to the line
-        tsv_file.write(f"\n\n")
+        tsv_file.write(f";\n;\n")
 
         # End time
         end_time = time.perf_counter()
