@@ -8,3 +8,4 @@ requests==2.33.1
 six==1.17.0
 urllib3==2.6.3
 tqdm>=4.67.3
+colorama==0.4.6
