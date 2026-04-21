@@ -86,6 +86,21 @@ def read_fasta(file_path):
 #   Function: complementary reverse of the k-mer   #
 ####################################################
 def reverse_complementary(kmer_seq):
+    """
+    Reverse complement of a DNA k-mer sequence.
+
+    The input sequence is reversed, then each nucleotide is replaced by its complementary base:
+    A <-> T
+    C <-> G
+
+    Args:
+        kmer_seq (str): DNA k-mer sequence (A, C, G, T).
+    Returns:
+        str: Reverse complement of DNA k-mer sequence.
+    Raises:
+        KeyError: If the sequence contains unsupported characters.
+    """
+
     # Create complementary reverse dictionary
     dico_complement = {"A":"T",
                        "T":"A",
@@ -100,6 +115,25 @@ def reverse_complementary(kmer_seq):
 #  Merge kmer + reverse complement  #
 #####################################
 def canonic_kmer(kmer):
+    """
+    Return  the canonical representation of a DNA k-mer.
+
+    The canonical k-mer is defined as the lexicagraphically smallest sequence between the input k-mer and
+    its reverse complement sequence. This allows merging canonical occurrences from both DNA strand.
+
+    Args:
+        kmer (str): DNA k-mer sequence (A, C, G, T).
+    Returns:
+        str: Canonical k-mer sequence.
+    Raises:
+        KeyError: If the sequence contains unsupported characters.
+    Examples:
+        >>> canonic_kmer("ATGC")
+        'ATCG'
+        >>> canonic_kmer("GCAT")
+        'ATCG'
+
+    """
     # Kmer reverse complement
     reverse_kmer = reverse_complementary(kmer)
 
@@ -110,6 +144,22 @@ def canonic_kmer(kmer):
 #   Function: nucleotides frequencies   #
 #########################################
 def nucleotide_frequencies(sequences):
+    """
+    Calculate nucleotide frequencies from a list of DNA k-mer sequences.
+
+    The function counts occurrences of valid nucleotides (A, C, G, T)
+    across all DNA sequences and ignores unknown bases such as N.
+
+    Args:
+        sequences (dict): Dictionary of DNA sequences {sequence_id : sequence}.
+    Returns:
+        dict: Relative frequencies of nucleotide  {"A" : freq_A,
+                                                   "C" : freq_C,
+                                                   "G" : freq_G,
+                                                   "T" : freq_T,}
+    Raises:
+         ZeroDivisionError: If no valid nucleotide is found.
+    """
     # Initialization total number of nucleotides
     total = 0
     # Initialization a dictionary counter where key is base and value the number of times it was counted
@@ -134,7 +184,31 @@ def nucleotide_frequencies(sequences):
 #   Function : Excepted frequencies     #
 #########################################
 def expected_frequencies(single_kmer, frequencies):
+    """
+    Calculate expected frequencies from a list of DNA k-mer sequences.
 
+    The function counts occurrences of valid nucleotide (A, C, G, T).
+    The excepted frequency is computed as the product of the individual nucleotide frequencies,
+    assuming independence between positions.
+
+    For example:
+        P(ATG) = P(A) × P(T) × P(G)
+
+    Args:
+        single_kmer (str): DNA k-mer sequence (A, C, G, T).
+        frequencies (dict): Dictionary of nucleotide frequencies {"A" : freq_A,
+                                                                  "C" : freq_C,
+                                                                  "G" : freq_G,
+                                                                  "T" : freq_T,}.
+    Returns:
+        float: Expected frequency of the k-mer.
+    Raises:
+        KeyError: If the k-mer contains unsupported characters.
+     Example:
+        >>> freqs = {"A": 0.3, "T": 0.2, "G": 0.3, "C": 0.2}
+        >>> expected_frequencies("ATG", freqs)
+        0.018
+    """
     probability = 1
 
     for base in single_kmer:
@@ -147,6 +221,26 @@ def expected_frequencies(single_kmer, frequencies):
 #   Function : Count observed kmer  #
 #####################################
 def counts_kmer(k_length, sequence, strand_mode):
+    """
+    Count observed k-mers in a set of DNA sequences.
+
+    The function scans each sequence using a sliding window of size k and counts all valid k-mers.
+
+    K-mers containing unknown nucleotides (N) are ignored.
+
+    Depending on the strand mode:
+        - "single": count k-mers as they appear.
+        - "both": merge each k-mer with its reverse complement using the canonical representation.
+
+    Args:
+        k_length (int): Length of the k-mer.
+        sequence (dict): Dictionary of DNA sequences in the form
+            {sequence_id: sequence}.
+        strand_mode (str): Strand counting mode:
+            "single" or "both".
+    Returns:
+        Counter(dict): Dictionary-like object containing k-mer counts {kmer: occurrences}
+    """
 
     # Initialize a dictionary counter where key is kmer and value is the number of times it was counted
     kmer_count = Counter()
@@ -162,7 +256,7 @@ def counts_kmer(k_length, sequence, strand_mode):
            if "N" in kmer:
                continue
 
-           if strand_mode == "reverse_complement":
+           if strand_mode == "both":
                key = canonic_kmer(kmer)
 
            else:
