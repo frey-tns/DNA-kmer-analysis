@@ -221,3 +221,5 @@ test_kmer-analisys.py
 test_stage_tagc.py
 
 purgatoire
+
+*.tsv
