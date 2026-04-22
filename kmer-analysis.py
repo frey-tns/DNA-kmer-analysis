@@ -87,6 +87,26 @@ def read_fasta(file_path):
 
     return dico_sequences, total_length
 
+#################################################
+#   Function: Defined the format command line   #
+#################################################
+def format_command_line(argv):
+    """
+     Format command line while keeping only file names for input paths.
+
+     Args:
+         argv (list): Command-line arguments.
+
+     Returns:
+         str: Reconstructed command line.
+     """
+    # Keeps the final path name
+    return " ".join(shlex.quote(os.path.basename(arg)) if ("/" in arg or "\\" in arg)
+                   # Protects arguments containing spaces or special characters.
+                   else shlex.quote(arg)
+                   # Iterates through the command-line arguments
+                   for arg in argv)
+
 ####################################################
 #   Function: complementary reverse of the k-mer   #
 ####################################################
@@ -274,9 +294,9 @@ def counts_kmer(k_length, sequence, strand_mode):
 
     return kmer_count
 
-###################
-#   Main code     #
-###################
+#################
+#   Main code   #
+#################
 def main():
     """
     Run the complete k-mer analysis workflow.
@@ -395,7 +415,7 @@ def main():
     # Browses the dictionary of observed k-mers.
     for canon_kmer, occ in observed_kmer_count.items():
 
-        if strand_mode == "reverse_complement":
+        if strand_mode == "both":
             canon_kmer = canonic_kmer(canon_kmer)
             # Kmer inverse complement
             reverse_kmer = reverse_complementary(canon_kmer)
@@ -459,7 +479,9 @@ def main():
 
         ## Parameter
         # Command line
-        tsv_file.write(f"; Command\t{' '.join(shlex.quote(arg) for arg in sys.argv)}\n;\n")
+        command_line = format_command_line(sys.argv)
+        # Write command line
+        tsv_file.write(f"; Command\t{command_line}\n;\n")
         # URL in input
         tsv_file.write(f"; Fasta URL\t{fasta_file}\n"
                        f"; Input file\t{input_file}\n"
