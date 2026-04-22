@@ -278,11 +278,47 @@ def counts_kmer(k_length, sequence, strand_mode):
 #   Main code     #
 ###################
 def main():
+    """
+    Run the complete k-mer analysis workflow.
+
+    The function parses command-line arguments, loads the input FASTA file , compute nucleotide frequencies,
+    counts observed k-mer sequences according to the selected strand mode, estimates expected frequencies and
+    occurrences, then writes results to a TSV output file.
+
+    The generated report contains:
+        - command line used to launch the program
+        - input/output parameters 
+        - sequence summary statistics
+        - k-mer analyse table
+        - execution timestamps and runtime
+
+    Command-line arguments:
+        -i, --input:
+            Path to the input FASTA file.
+
+        -k, --kmer:
+            Length of the K-mer sequences to analyse.
+
+        -o, --output:
+            Output TSV file path or output directory.
+
+        -s, --strand:
+            Strand mode to compute counts for.
+
+    Raises:
+        FileNotFoundError: If input FASTA file does not exist.
+        ValueError: If input FASTA file is empty.
+        OSError: If the output directory cannot be created.
+
+    Returns:
+        None
+    """
 
     # Time tracking (Benchmark)
     start_time = time.perf_counter()
     # Job started
     start_time_date = datetime.datetime.now()
+
     ############################
     #   Command line options   #
     ############################
