@@ -1,6 +1,6 @@
 __authors__ = ("Anouk RISCH")
 __contact__ = ("anouk.risch@etu.univ-amu.fr")
-__date__ = "2026-04-21"
+__date__ = "2026-04-22"
 __version__ = "1.2"
 
 #################
@@ -14,12 +14,15 @@ import os
 import time
 import datetime
 import sys
+# For shell command string manipulation
 import shlex
 
 from tqdm import tqdm
 from collections import Counter # count (cf k-mer count)
 # Coloring warning text
 from colorama import init, Fore
+
+# To reset color
 init(autoreset=True)
 
 #####################################################
@@ -435,7 +438,7 @@ def main():
                        f"; Sum of sequence lengths\t{total_length}\n"
                        f"; Sequences:\n")
         for seq_id, seq_fasta in sequences.items():
-            tsv_file.write(f"#\t{seq_id}\t{len(seq_fasta)}\n")
+            tsv_file.write(f";\t{seq_id}\t{len(seq_fasta)}\n")
 
         tsv_file.write(f";\n;\n")
 
