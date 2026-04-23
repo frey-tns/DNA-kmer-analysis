@@ -19,6 +19,7 @@ RISCH Anouk
 - [9. Understanding Output Columns](#9-understanding-output-columns)
 - [10. Getting Help](#10-getting-help)
 - [11. Pydoc](#11-pydoc-)
+- [12. Probabilities](#12-probabilities-)
 
 ### Introduction 
 
@@ -83,7 +84,7 @@ For `ATTCG` sequence  with `K=2`.
 | 2        |TCG|
 
 Total numbers of windows :  
-`sequence_lenght - k +1 `
+`sequence_lenght - k + 1 `
 
 ### 3. Computing Frequencies 
 Raw counts are useful, however frequencies make it easier to compare sequences of different lengths.
@@ -96,7 +97,7 @@ AAC     occ=2       freq=0.010
 **Interpretation :**  
 
 Frequency :  
-`occurence / total posisble windows`  
+`occurence / total possible windows`  
 
 Useful when comparing datasets of different sizes.
 
@@ -137,14 +138,10 @@ Background models are probabilistic models used to estimate the expected frequen
 **Bernoulli Model**  
 Assuming nucleotides are independent (`P(A)`, `P(C)`, `P(T)`, `P(G)`) :
 ```
-P(ATG) =  P(A)*P(T)*P(G)
+P(A) = P(T) = P(C) = P(G) 
 ```
-Simple and fast 
+Simple and fast but not realistic 
 
-Use when : 
-- quick analyses 
-- random-like sequences
-- first exploration
 
 **Markov Model**  
 Accounts for local dependencies.  
@@ -162,10 +159,7 @@ Expected(GATAAC) = observed(GATAA) * observed(ATAAC) / observed(ATAA)
 
 More realistic for biological sequences.
 
-Use when : 
-- genomic DNA
-- promoter analysis
-- motif enrichment studies  
+
 
 A 0 order Markov model uses the observed single-residue frequencies to estimate expected oligonucleotide frequencies, assuming no dependencies between adjacent residues. Under this assumption, sequence positions are treated as independent and identically distributed, corresponding to a Bernoulli model.
  
@@ -240,4 +234,49 @@ Automatic Python code documentation :
 ````commandline
 pydoc kmer-analysis
 ````
+### 12. Probabilities 
 
+EXPECTED OCCURRENCES  
+
+	                          S
+	   Exp_occ = p * T = p *  ∑ (Lj - k + 1)
+	                         j=1
+	
+	where	p  = probability of the pattern
+		S  = number of sequences in the sequence set. 
+		Lj = length of the jth regulatory region
+		k  = length of oligomer
+            T  = the number of possible matching positions.
+
+NUMBER OF POSSIBLE POSITIONS  
+
+                s
+        T = j = ∑ (Lj − k + 1)
+               j=1  
+
+
+PROBABILITY OF A SEQUENCE SEGMENT 
+
+**Bernoulli model**
+
+            k
+        p = ∏ P * (ri)
+           i=1
+
+    where   ri    = residue found at position I
+            P(ri) =  probability of this residue
+
+**Markov  model**
+
+        P(ri ∣ S i−m,1−i)
+    
+    where   S = sequence
+            i = current position
+            m = Markov model order
+            Si−m,1−i = m nucleotides previously
+
+Sequence probability given the background mode
+
+                        k
+        p = P(ri) * i = ∏ P * (ri ∣S i−m,1−i)
+                       i=2
