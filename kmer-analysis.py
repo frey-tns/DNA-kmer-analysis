@@ -92,7 +92,7 @@ def read_fasta(file_path):
 #################################################
 def format_command_line(argv):
     """
-     Format command line while keeping only file names for input paths.
+     Format command line by changing the absolute path to a relative path.
 
      Args:
          argv (list): Command-line arguments.
@@ -100,12 +100,36 @@ def format_command_line(argv):
      Returns:
          str: Reconstructed command line.
      """
-    # Keeps the final path name
-    return " ".join(shlex.quote(os.path.basename(arg)) if ("/" in arg or "\\" in arg)
-                   # Protects arguments containing spaces or special characters.
-                   else shlex.quote(arg)
-                   # Iterates through the command-line arguments
-                   for arg in argv)
+    # Retrieves the folder from which the script is executed
+    cwd = os.getcwd()
+    # Contains the rebuilt command
+    list_cleaned_command = []
+
+    # The next argument is a file path
+    skip_next = False
+
+    # Iterates through each element of the order
+    for arg in argv:
+
+        # If argument associated with -i or -o
+        if skip_next:
+            # Converts absolute path to relative path
+            rel = os.path.relpath(arg, cwd)
+            list_cleaned_command.append(shlex.quote(rel))
+            # Returns to the initial state
+            skip_next = False
+
+        elif arg in ["-i", "--input", "-o", "--output"]:
+            # Keep the current flag
+            list_cleaned_command.append(arg)
+            # The next argument is a path
+            skip_next = True
+
+        else:
+            # Normal argument
+            list_cleaned_command.append(shlex.quote(arg))
+
+    return " ".join(list_cleaned_command)
 
 ####################################################
 #   Function: complementary reverse of the k-mer   #
@@ -484,9 +508,9 @@ def main():
         tsv_file.write(f"; Command\t{command_line}\n;\n")
         # URL in input
         tsv_file.write(f"; Fasta URL\t{fasta_file}\n"
-                       f"; Input file\t{input_file}\n"
+                       f"; Input file\t{os.path.relpath(input_file)}\n"
                        f"; Input format\tFasta\n"
-                       f"; Output file\t{output_path}\n"
+                       f"; Output file\t{os.path.relpath(output_path)}\n"
                        f"; Strand mode\t{strand_mode}\n"
                        f"; Oligomer length\t{kmer_length}\n;\n")
 
