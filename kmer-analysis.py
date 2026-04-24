@@ -1,3 +1,26 @@
+"""
+-------
+This program is designed to analyse biological sequences by counting and characterizing k-mers on DNA sequences from a FASTA file.
+
+This script provides:
+- observed k-mer counts
+- expected frequencies based on nucleotide composition
+- optional merging of reverse-complement k-mers (canonical representation)
+- k-mer occurrence estimation
+- expected frequency computation using Bernoulli or Markov background
+
+The results are written to a TSV file.
+
+USAGE
+    python kmer-analysis.py -i input.fasta -k 6 -o output.tsv
+
+PARAMETERS
+    -i : input FASTA file
+    -o : output TSV file
+    -k : k-mer size
+    -s : strand mode (single or both)
+    -r : parse return option ("occ, exp_occ, exp_freq, obs_freq")
+"""
 __authors__ = ("Anouk RISCH")
 __contact__ = ("anouk.risch@etu.univ-amu.fr")
 __date__ = "2026-04-24"
@@ -127,7 +150,7 @@ def read_fasta(file_path):
     Load and read FASTA file from local path.
 
     Args:
-        path file (str): FASTA file.
+        file_path (str): FASTA file.
 
     Returns:
         dict: dictionary {ID : sequence}
@@ -254,7 +277,7 @@ def canonic_kmer(kmer):
     """
     Return  the canonical representation of a DNA k-mer.
 
-    The canonical k-mer is defined as the lexicagraphically smallest sequence between the input k-mer and
+    The canonical k-mer is defined as the lexicographically smallest sequence between the input k-mer and
     its reverse complement sequence. This allows merging canonical occurrences from both DNA strand.
 
     Args:
@@ -324,11 +347,11 @@ def expected_frequencies(single_kmer, frequencies):
     Calculate expected frequencies from a list of DNA k-mer sequences.
 
     The function counts occurrences of valid nucleotide (A, C, G, T).
-    The excepted frequency is computed as the product of the individual nucleotide frequencies,
+    The expected frequency is computed as the product of the individual nucleotide frequencies,
     assuming independence between positions.
 
     For example:
-        P(ATG) = P(A) × P(T) × P(G)
+        P(ATG) = P(A) * P(T) * P(G)
 
     Args:
         single_kmer (str): DNA k-mer sequence (A, C, G, T).
@@ -412,7 +435,7 @@ def main():
     """
     Run the complete k-mer analysis workflow.
 
-    The function parses command-line arguments, loads the input FASTA file , compute nucleotide frequencies,
+    The function parses command-line arguments, loads the input FASTA file , computes nucleotide frequencies,
     counts observed k-mer sequences according to the selected strand mode, estimates expected frequencies and
     occurrences, then writes results to a TSV output file.
 
@@ -420,7 +443,7 @@ def main():
         - command line used to launch the program
         - input/output parameters 
         - sequence summary statistics
-        - k-mer analyse table
+        - k-mer analysis table
         - execution timestamps and runtime
 
     Command-line arguments:
