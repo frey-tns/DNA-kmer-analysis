@@ -15,7 +15,7 @@ RISCH Anouk
 - [5. Statistical Significance](#5-statistical-significance)
 - [6. Background Models](#6-background-models)
 - [7. Oligonucleotide size](#7-oligonucleotide-size)
-- [8.Reverse Complements - Strand option](#8-reverse-complement---strand-options)
+- [8.Reverse Complements - Strand option](#8-reverse-complements---strand-options)
 - [9. Understanding Output Columns](#9-understanding-output-columns)
 - [10. Getting Help](#10-getting-help)
 - [11. Pydoc](#11-pydoc)
@@ -35,14 +35,14 @@ The output is a tab-delimted file with one row per oligonucleotide,
 and one column per statistics.  
 The column content is detailed in the header of the output :
 
-| Columns  | Meaning                      |
-|----------|------------------------------|
-| seq      | oligomer sequence            |
-| id       | oligomer identifier          |
-| exp_freq | expected relative frequency  |
-| obs_freq | 	observed relative frequency |
-| occ      | observed occurrences|
-| exp_occ  | expected occurrences|
+| Columns   | Meaning                       |
+|:----------|:------------------------------|
+| seq       | oligomer sequence             |
+| id        | oligomer identifier           |
+| exp_freq  | expected relative frequency   |
+| obs_freq  | 	observed relative frequency  |
+| occ       | observed occurrences          |
+| exp_occ   | expected occurrences          |
 
 ### 1. Basic usage: Counts Occurrences
 
@@ -76,11 +76,11 @@ He scans each sequence using a sliding window of size k and counts all valid k-m
 
 For `ATTCG` sequence  with `K=2`.
 
-| Position |k-mer|
-|----------|-----|
-| 0        |ATT|
-| 1        |TTC|
-| 2        |TCG|
+|  Position  | k-mer  |
+|:----------:|:------:|
+|     0      |  ATT   |
+|     1      |  TTC   |
+|     2      |  TCG   |
 
 Total numbers of windows :  
 `sequence_lenght - k + 1 `
@@ -202,22 +202,22 @@ Limitations :
 ```commandline
 python3 kmer-analysis.py -i sequences.fa -k 2 -o results.tsv -s both
 ```
-| Option   | Meaning                      |
-|----------|------------------------------|
-| `single` | Forward                      |
-|`both`| Forward + reverse complement |
+| Option    | Meaning                       |
+|:----------|:------------------------------|
+| `single`  | Forward                       |
+| `both`    | Forward + reverse complement  |
 
 By selecting the `both` option, the occurrences of each oligonucleotide are aggregated across both strands. This enables the detection of sequence elements that function in an orientation-independent manner. 
 ### 9. Understanding Output Columns
 
-|                          Columns | Meaning                                                                                                                                                                                                                                                                                                                                                                                                                              |
-|---------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|                              seq | oligomer sequence                                                                                                                                                                                                                                                                                                                                                                                                                    |
-|                               id | oligomer identifier                                                                                                                                                                                                                                                                                                                                                                                                                  |
-|  Expected frequencies (exp_freq) | Proportion of a given oligonucleotide that is expected within the sequence set under the selected probabilistic model. It is computed from the expected occurrences by normalizing them with respect to the total number of possible oligonucleotide positions in the dataset. This measure reflects the theoretical probability of observing each oligonucleotide given the assumed model of sequence composition and dependencies. |
-|           Frequencies (obs_freq) | 	Relative frequencies are defined as the number of occurrences of each oligonucleotide divided by the total number of occurrences across all oligonucleotides in the dataset.                                                                                                                                                                                                                                                        |
-|                Occurrences (occ) | Number of occurrences of each oligonucleotide observed in the dataset. All matches are included, and overlapping occurrences are detected and summed during the count.                                                                                                                                                                                                                                                               |
-|   Expected occurrences (exp_occ) | Predicted number of times a given oligonucleotide is expected to appear within the sequence set. This value is computed according to the probabilistic model chosen by the user (see above), which defines how sequence composition and dependencies are taken into account.                                                                                                                                                         |
+| Columns                          | Meaning                                                                                                                                                                                                                                                                                                                                                                                                                               |
+|:---------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| seq                              | oligomer sequence                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| id                               | oligomer identifier                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Expected frequencies (exp_freq)  | Proportion of a given oligonucleotide that is expected within the sequence set under the selected probabilistic model. It is computed from the expected occurrences by normalizing them with respect to the total number of possible oligonucleotide positions in the dataset. This measure reflects the theoretical probability of observing each oligonucleotide given the assumed model of sequence composition and dependencies.  |
+| Frequencies (obs_freq)           | 	Relative frequencies are defined as the number of occurrences of each oligonucleotide divided by the total number of occurrences across all oligonucleotides in the dataset.                                                                                                                                                                                                                                                         |
+| Occurrences (occ)                | Number of occurrences of each oligonucleotide observed in the dataset. All matches are included, and overlapping occurrences are detected and summed during the count.                                                                                                                                                                                                                                                                |
+| Expected occurrences (exp_occ)   | Predicted number of times a given oligonucleotide is expected to appear within the sequence set. This value is computed according to the probabilistic model chosen by the user (see above), which defines how sequence composition and dependencies are taken into account.                                                                                                                                                          |
 
 ### 10. Getting Help
 List all options :
