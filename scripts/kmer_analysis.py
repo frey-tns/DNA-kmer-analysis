@@ -36,7 +36,7 @@ VERSION
     1.2, 2026-04-24
 
 EXAMPLES
-    python3 scripts/kmer_analysis.py -i data/yeast_MET_upstream.fasta  -k 6 -s both -o results/ueast_MET_upstream_6nt_2str.tsv
+    python3 scripts/kmer_analysis.py -i data/yeast_MET_upstream.fasta  -k 6 -s both -o results/yeast_MET_upstream_6nt_2str.tsv
 
 USAGE AND OPTIONS
 
