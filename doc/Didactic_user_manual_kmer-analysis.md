@@ -5,32 +5,32 @@ RISCH Anouk
 
 ## Table of contents 
 
-- [Introduction](#introduction-)
-- [Input format](#input-format-)
-- [Output format](#output-format-)
-- [1. Basic usage: Counts Occurrences](#1-basic-usage-counts-occurrences-) 
+- [Introduction](#introduction)
+- [Input format](#input-format)
+- [Output format](#output-format)
+- [1. Basic usage: Counts Occurrences](#1-basic-usage-counts-occurrences) 
 - [2. How k-mers are Counted](#2-how-k-mers-are-counted)
-- [3. Computing frequencies](#3-computing-frequencies-)
-- [4. Exploring Results as TSV](#4-exploring-result-as-tsv-)
+- [3. Computing frequencies](#3-computing-frequencies)
+- [4. Exploring Results as TSV](#4-exploring-result-as-tsv)
 - [5. Statistical Significance](#5-statistical-significance)
-- [6. Background Models](#6-background-models-)
+- [6. Background Models](#6-background-models)
 - [7. Oligonucleotide size](#7-oligonucleotide-size)
-- [8.Reverse Complement Strand option](#8-reverse-complement---strand-options-)
+- [8.Reverse Complements - Strand option](#8-reverse-complement---strand-options)
 - [9. Understanding Output Columns](#9-understanding-output-columns)
 - [10. Getting Help](#10-getting-help)
-- [11. Pydoc](#11-pydoc-)
-- [12. Probabilities](#12-probabilities-)
+- [11. Pydoc](#11-pydoc)
+- [12. Probabilities](#12-probabilities)
 
-### Introduction 
+### Introduction
 
 `kmer-analysis` is a command-line program designed to analyse biological sequences by counting and characterizing **k-mers**.
 
 He operates on a single input sequence dataset and compares the observed oligonucleotide frequencies to those expected under a specified reference model (Bernoulli or Markov). This reference model is typically inferred from a set of background sequences, providing an estimate of baseline sequence composition and dependencies
 
-### Input format 
+### Input format
 The program takes as input a pair of sequence files in fasta format.
 
-### Output format 
+### Output format
 The output is a tab-delimted file with one row per oligonucleotide,
 and one column per statistics.  
 The column content is detailed in the header of the output :
@@ -44,7 +44,7 @@ The column content is detailed in the header of the output :
 | occ      | observed occurrences|
 | exp_occ  | expected occurrences|
 
-### 1. Basic usage: Counts Occurrences 
+### 1. Basic usage: Counts Occurrences
 
 The simplest use of the program is to count how many times each k-mer appears.
 ```commandline
@@ -85,7 +85,7 @@ For `ATTCG` sequence  with `K=2`.
 Total numbers of windows :  
 `sequence_lenght - k + 1 `
 
-### 3. Computing Frequencies 
+### 3. Computing Frequencies
 Raw counts are useful, however frequencies make it easier to compare sequences of different lengths.
 
 **Output Example**
@@ -100,7 +100,7 @@ Frequency :
 
 Useful when comparing datasets of different sizes.
 
-### 4. Exploring Result as TSV 
+### 4. Exploring Result as TSV
 To save results in tabular format :
 ```commandline
 python3 kmer-analysis.py -i sequences.fa -k 2 -o results.tsv
@@ -129,7 +129,7 @@ TAAA    18      4.2
 `TAAA` appears much more often than expected.
 This may indicate a biologically meaningful motif.
 
-### 6. Background Models 
+### 6. Background Models
 Background models are probabilistic models used to estimate the expected frequency of each oligonucleotide (short DNA motif → k-mer). The choice of the expected frequency can strongly influence the results of the analysis.
 
 **Predefined background frequencies :**  This approach consists of comparing the oligonucleotide frequencies observed in the query sequence with those measured in a reference sequence used as the background model.
@@ -197,7 +197,7 @@ Limitations :
 - sparse counts
 - slower computation
 
-### 8. Reverse Complement - Strand Options 
+### 8. Reverse Complements - Strand Options
 **Command** 
 ```commandline
 python3 kmer-analysis.py -i sequences.fa -k 2 -o results.tsv -s both
@@ -224,7 +224,7 @@ List all options :
 ````commandline
 python3 kmer-analisys.py --help
 ````
-### 11. Pydoc 
+### 11. Pydoc
 Automatic Python code documentation : 
 - function 
 - parameters 
@@ -233,7 +233,7 @@ Automatic Python code documentation :
 ````commandline
 pydoc kmer-analysis
 ````
-### 12. Probabilities 
+### 12. Probabilities
 
 EXPECTED OCCURRENCES  
 
