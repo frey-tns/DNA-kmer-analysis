@@ -1,30 +1,50 @@
 """
--------
-This program is designed to analyse biological sequences by counting and characterizing k-mers on DNA sequences from a FASTA file.
+Compute statistics about k-mer occurrences in biological sequences.
 
-This script provides:
-- observed k-mer counts
-- expected frequencies based on nucleotide composition
-- optional merging of reverse-complement k-mers (canonical representation)
-- k-mer occurrence estimation
-- expected frequency computation using Bernoulli or Markov background
+This program counts the occurrences of all k-mers in a set of input sequences (provided as a fasta-formatted file),
+and derives different optional statistics :
+
+- observed k-mer occurrence counts and relative frequencies
+- expected occurrences and frequencies based on either a Bernoulli or a Markov model
+- over- or under-representation statistics (P-value, E-value, significance)
+
+For DNA sequences, k-mers can optionally be grouped by pairs of reverse-complements. This applies to the observed
+counts/frequencies as well as to the derived statistics.
 
 The results are written to a TSV file.
 
 USAGE
     python kmer-analysis.py -i input.fasta -k 6 -o output.tsv
 
-PARAMETERS
+OPTIONS
     -i : input FASTA file
     -o : output TSV file
     -k : k-mer size
     -s : strand mode (single or both)
     -r : parse return option ("occ, exp_occ, exp_freq, obs_freq")
+
+AUTHOR
+    Anouk RISCH
+
+CONTACT
+    https://github.com/frey-tns
+
+URL
+    https://github.com/frey-tns/DNA-kmer-analysis
+
+VERSION
+    1.2, 2026-04-24
+
+EXAMPLES
+    python kmer-analysis.py -i data/yeast_MET_upstream.fasta  -k 6 -s both -o results/ueast_MET_upstream_6nt_2str.tsv
+
+USAGE AND OPTIONS
+
+    For command-line usage, run:
+        python kmer_analysis.py --help
+
+
 """
-__authors__ = ("Anouk RISCH")
-__contact__ = ("anouk.risch@etu.univ-amu.fr")
-__date__ = "2026-04-24"
-__version__ = "1.2"
 
 #################
 #   Libraries   #
@@ -43,17 +63,31 @@ import shlex
 from tqdm import tqdm
 from collections import Counter # count (cf k-mer count)
 # Coloring warning text
-from colorama import init, Fore
-
+from colorama import init
+from colorama import Fore
+# from colorama import Fore as _Fore
 # To reset color
 init(autoreset=True)
+
+################################################################
+## CONSTANTS
+################################################################
+# Default field definitions
+_DEFAULT_FIELDS = ["occ", "obs_freq"]
+
+# Dependencies between dictionaries
+_DICT_DEPENDENCIES = {"obs_freq" : ["occ"],
+                     "exp_occ" : ["exp_freq"],
+                     "exp_freq" : []}
+
+################################################################
+## FUNCTIONS
+################################################################
 
 #####################################
 #   Function: Parse return option   #
 #####################################
 
-# Default field definitions
-default_fields = ["occ", "obs_freq"]
 
 # User parameter for --return
 def parse_return_option(return_str):
@@ -78,7 +112,7 @@ def parse_return_option(return_str):
     # If user give nothing
     if return_str is None:
         # Return occ and obs freq (default field)
-        return default_fields
+        return _DEFAULT_FIELDS
 
     # For each element f in the list resulting from .split(","),
     # clean with .strip() and add to a new list
@@ -89,10 +123,6 @@ def parse_return_option(return_str):
 #   Function: Dependencies   #
 ##############################
 
-# Dependencies
-dico_dependencies = {"obs_freq" : ["occ"],
-                     "exp_occ" : ["exp_freq"],
-                     "exp_freq" : []}
 
 # Automatic addition of dependencies
 def resolve_dependencies(fields):
@@ -126,7 +156,7 @@ def resolve_dependencies(fields):
         # Browse the requested fields
         for field in list(resolved):
             # For each field, retrieve its dependencies (if none → empty list)
-            for dep in dico_dependencies.get(field, []):
+            for dep in _DICT_DEPENDENCIES.get(field, []):
                 # If no dependency
                 if dep not in resolved:
                     # Adding the missing dependency
