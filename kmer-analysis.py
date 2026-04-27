@@ -1,7 +1,50 @@
-__authors__ = ("Anouk RISCH")
-__contact__ = ("anouk.risch@etu.univ-amu.fr")
-__date__ = "2026-04-22"
-__version__ = "1.2"
+"""
+Compute statistics about k-mer occurrences in biological sequences.
+
+This program counts the occurrences of all k-mers in a set of input sequences (provided as a fasta-formatted file),
+and derives different optional statistics :
+
+- observed k-mer occurrence counts and relative frequencies
+- expected occurrences and frequencies based on either a Bernoulli or a Markov model
+- over- or under-representation statistics (P-value, E-value, significance)
+
+For DNA sequences, k-mers can optionally be grouped by pairs of reverse-complements. This applies to the observed
+counts/frequencies as well as to the derived statistics.
+
+The results are written to a TSV file.
+
+USAGE
+    python kmer-analysis.py -i input.fasta -k 6 -o output.tsv
+
+OPTIONS
+    -i : input FASTA file
+    -o : output TSV file
+    -k : k-mer size
+    -s : strand mode (single or both)
+    -r : parse return option ("occ, exp_occ, exp_freq, obs_freq")
+
+AUTHOR
+    Anouk RISCH
+
+CONTACT
+    https://github.com/frey-tns
+
+URL
+    https://github.com/frey-tns/DNA-kmer-analysis
+
+VERSION
+    1.2, 2026-04-24
+
+EXAMPLES
+    python kmer-analysis.py -i data/yeast_MET_upstream.fasta  -k 6 -s both -o results/ueast_MET_upstream_6nt_2str.tsv
+
+USAGE AND OPTIONS
+
+    For command-line usage, run:
+        python kmer_analysis.py --help
+
+
+"""
 
 #################
 #   Libraries   #
@@ -20,10 +63,107 @@ import shlex
 from tqdm import tqdm
 from collections import Counter # count (cf k-mer count)
 # Coloring warning text
-from colorama import init, Fore
-
+from colorama import init
+from colorama import Fore
+# from colorama import Fore as _Fore
 # To reset color
 init(autoreset=True)
+
+################################################################
+## CONSTANTS
+################################################################
+# Default field definitions
+_DEFAULT_FIELDS = ["occ", "obs_freq"]
+
+# Dependencies between dictionaries
+_DICT_DEPENDENCIES = {"obs_freq" : ["occ"],
+                     "exp_occ" : ["exp_freq"],
+                     "exp_freq" : []}
+
+################################################################
+## FUNCTIONS
+################################################################
+
+#####################################
+#   Function: Parse return option   #
+#####################################
+
+
+# User parameter for --return
+def parse_return_option(return_str):
+    """
+        Parse the `--return` command-line option into a list of requested output fields.
+
+        The function splits the input string on commas and removes any surrounding
+        whitespace from each field. If no option is provided, a default list of fields
+        is returned.
+
+        Args:
+            return_str (str or None): Comma-separated string of requested fields
+                (e.g. "occ,exp_freq,obs_freq"). If None, default fields are used.
+        Returns:
+            list of str: Cleaned list of requested output fields.
+        Examples:
+            >>> parse_return_option("occ, exp_freq, obs_freq")
+            ['occ', 'exp_freq', 'obs_freq']
+            >>> parse_return_option(None)
+            ['occ', 'obs_freq']
+        """
+    # If user give nothing
+    if return_str is None:
+        # Return occ and obs freq (default field)
+        return _DEFAULT_FIELDS
+
+    # For each element f in the list resulting from .split(","),
+    # clean with .strip() and add to a new list
+    return [f.strip() for f in return_str.split(",")]
+
+
+##############################
+#   Function: Dependencies   #
+##############################
+
+
+# Automatic addition of dependencies
+def resolve_dependencies(fields):
+    """
+      Resolve dependencies between output fields.
+
+      Some output fields require others to be computed beforehand. This function
+      expands the list of requested fields by automatically adding all required
+      dependencies, based on a predefined dependency dictionary.
+
+      The resolution is performed iteratively until no new dependencies need to be added.
+
+      Args:
+          fields (list of str): List of requested output fields.
+      Returns:
+          list of str: Extended list including all required dependencies.
+      Raises:
+          KeyError: If a field is not defined in the dependency dictionary.
+      Examples:
+          >>> resolve_dependencies(['obs_freq'])
+          ['obs_freq', 'occ']
+          >>> resolve_dependencies(['exp_freq'])
+          ['exp_freq', 'exp_occ']
+      """
+    # Avoids duplicates
+    resolved = set(fields)
+
+    change = True
+    while change:
+        change = False
+        # Browse the requested fields
+        for field in list(resolved):
+            # For each field, retrieve its dependencies (if none → empty list)
+            for dep in _DICT_DEPENDENCIES.get(field, []):
+                # If no dependency
+                if dep not in resolved:
+                    # Adding the missing dependency
+                    resolved.add(dep)
+                    change = True
+
+    return list(resolved)
 
 #####################################################
 #    Function to read and give stat on Fasta file   #
@@ -40,7 +180,7 @@ def read_fasta(file_path):
     Load and read FASTA file from local path.
 
     Args:
-        path file (str): FASTA file.
+        file_path (str): FASTA file.
 
     Returns:
         dict: dictionary {ID : sequence}
@@ -167,7 +307,7 @@ def canonic_kmer(kmer):
     """
     Return  the canonical representation of a DNA k-mer.
 
-    The canonical k-mer is defined as the lexicagraphically smallest sequence between the input k-mer and
+    The canonical k-mer is defined as the lexicographically smallest sequence between the input k-mer and
     its reverse complement sequence. This allows merging canonical occurrences from both DNA strand.
 
     Args:
@@ -237,11 +377,11 @@ def expected_frequencies(single_kmer, frequencies):
     Calculate expected frequencies from a list of DNA k-mer sequences.
 
     The function counts occurrences of valid nucleotide (A, C, G, T).
-    The excepted frequency is computed as the product of the individual nucleotide frequencies,
+    The expected frequency is computed as the product of the individual nucleotide frequencies,
     assuming independence between positions.
 
     For example:
-        P(ATG) = P(A) × P(T) × P(G)
+        P(ATG) = P(A) * P(T) * P(G)
 
     Args:
         single_kmer (str): DNA k-mer sequence (A, C, G, T).
@@ -325,7 +465,7 @@ def main():
     """
     Run the complete k-mer analysis workflow.
 
-    The function parses command-line arguments, loads the input FASTA file , compute nucleotide frequencies,
+    The function parses command-line arguments, loads the input FASTA file , computes nucleotide frequencies,
     counts observed k-mer sequences according to the selected strand mode, estimates expected frequencies and
     occurrences, then writes results to a TSV output file.
 
@@ -333,7 +473,7 @@ def main():
         - command line used to launch the program
         - input/output parameters 
         - sequence summary statistics
-        - k-mer analyse table
+        - k-mer analysis table
         - execution timestamps and runtime
 
     Command-line arguments:
@@ -390,6 +530,11 @@ def main():
                         default="single",
                         help="Sequence strand(s) to take into account for k-mer counting. Accepted values: single, only count the occurrences on forward strand; both: count on both forward and reverse strands.)")
 
+    parser.add_argument("-r","--return",
+                        dest = "return_fields",
+                        type = str,
+                        default = None,
+                        help = "Comma-separated list of fields to return (default: None)")
     # Reads the command typed in the terminal
     args = parser.parse_args()
 
@@ -398,6 +543,10 @@ def main():
     kmer_length = args.kmer_length
     output_file = args.output
     strand_mode = args.strand
+    requested_fields = parse_return_option(args.return_fields)
+
+    fields_compute = resolve_dependencies(requested_fields)
+
 
     ## CONDITION : does the files already exist ?
 
@@ -458,24 +607,41 @@ def main():
 
         dico_canon_kmer.add(canon_kmer)
 
+        # Occurrence threshold
         threshold = 1
         if occ < threshold:
             continue
 
+        row = {"seq" : canon_kmer,
+                "id" : kmer_id}
+
+        # Occurrence
+        if "occ" in fields_compute:
+            row["occ"] = occ
+
         # Expected frequencies
-        exp_freq = expected_frequencies(canon_kmer, frequencies)
+        if "exp_freq" in fields_compute:
+            exp_freq = expected_frequencies(canon_kmer, frequencies)
+            row["exp_freq"] = exp_freq
+
         # Expected occurrences
-        exp_occ = total_positions * exp_freq
+        if "exp_occ" in fields_compute:
+            # Checks if exp_freq has already been calculated
+            if "exp_freq" not in row:
+                # exp_freq does not yet exist
+                exp_freq = expected_frequencies(canon_kmer, frequencies)
+            else:
+                # exp_freq already exists
+                exp_freq = row["exp_freq"]
+
+            row["exp_occ"] = total_positions * exp_freq
+
         # Observed frequencies
-        obs_freq = occ / total_positions
+        if "obs_freq" in fields_compute:
+            row["obs_freq"] = occ / total_positions
 
         # Stockage in list oligomers
-        result_analysis.append({"seq": canon_kmer,
-                                "id": kmer_id,
-                                "exp_freq": exp_freq,
-                                "exp_occ": exp_occ,
-                                "occ": occ,
-                                "obs_freq": obs_freq})
+        result_analysis.append(row)
 
     #####################
     #   Output file     #
@@ -534,10 +700,29 @@ def main():
                        f"; exp_occ\t expected occurrences\n;\n")
 
         # Kmer analysis table headers
-        tsv_file.write(f"# seq\tid\texp_freq\tobs_freq\tocc\texp_occ\n")
+        column = ["seq","id"] + requested_fields
+        tsv_file.write(f"# {'\t'.join(column)}\n")
+
         for row in result_analysis:
             # kmer analysis table
-            tsv_file.write(f"{row['seq']}\t{row['id']}\t{row['exp_freq']}\t{row['obs_freq']}\t{row['occ']}\t{row['exp_occ']:.2f}\n")
+            # Initializes an empty list to contain all the values of the row
+            list_values = []
+            # Browses the columns
+            for col in column:
+                # Retrieves the value associated with the column, if the key doesn't exist → empty string
+                value = row.get(col, "")
+
+                if col == "exp_occ" and isinstance(value, float):
+                    # Rounded exp occurrence
+                    value = f"{value:.2f}"
+                else:
+                    # Else convertion to string
+                    value = str(value)
+
+                list_values.append(value)
+
+            # Assemblies of values with tabs
+            tsv_file.write(f"{'\t'.join(list_values)}\n")
 
         # Double return to the line
         tsv_file.write(f";\n;\n")

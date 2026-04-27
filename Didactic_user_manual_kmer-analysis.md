@@ -1,7 +1,7 @@
 # Tutorial  — Using `kmer-analysis`
 
 RISCH Anouk  
-2026-04-2026
+2026-04-23
 
 ## Table of contents 
 
@@ -25,8 +25,7 @@ RISCH Anouk
 
 `kmer-analysis` is a command-line program designed to analyse biological sequences by counting and characterizing **k-mers**.
 
-The software compares the frequencies and occurrences of oligonucleotides between two input sequence files 
-and returns the oligonucleotides that are significantly enriched in one file compared to the other.
+He operates on a single input sequence dataset and compares the observed oligonucleotide frequencies to those expected under a specified reference model (Bernoulli or Markov). This reference model is typically inferred from a set of background sequences, providing an estimate of baseline sequence composition and dependencies
 
 ### Input format 
 The program takes as input a pair of sequence files in fasta format.
