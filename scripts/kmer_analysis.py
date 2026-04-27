@@ -36,7 +36,13 @@ VERSION
     1.2, 2026-04-24
 
 EXAMPLES
+
     python3 scripts/kmer_analysis.py -i data/yeast_MET_upstream.fasta  -k 6 -s both -o results/yeast_MET_upstream_6nt_2str.tsv
+
+    python3 scripts/kmer_analysis.py -i data/yeast_MET_upstream.fasta  -k 6 -s both \\
+        --return occ,obs_freq,exp_occ,exp_freq \\
+        -o results/yeast_MET_upstream_6nt_2str.tsv
+
 
 USAGE AND OPTIONS
 
@@ -534,7 +540,7 @@ def main():
                         dest = "return_fields",
                         type = str,
                         default = None,
-                        help = "Comma-separated list of fields to return (default: None)")
+                        help = "Comma-separated list of fields to return. Default: occ,freq. Supported values: occ,obs_freq,exp_occ,exp_freq")
     # Reads the command typed in the terminal
     args = parser.parse_args()
 
