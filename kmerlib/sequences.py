@@ -17,7 +17,7 @@ USAGE
     This module is intended to be imported and used in other scripts :
 
     from sequences import read_fasta
-    sequences, total_length = read_fasta("input.fasta")
+    sequences, total_length = read_fasta("yeast_MET_upstream.fasta"")
 
 INPUT
     file_path : str

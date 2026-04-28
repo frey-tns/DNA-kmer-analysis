@@ -1,5 +1,5 @@
 """
-K-mer utilities for DNA sequence analysis.
+K-mer and nucleotide statistics utilities for DNA sequence analysis.
 
 This module provides core functions to manipulate and analyze k-mers from biological DNA sequences.
 It is designed to be used as a reusable library for downstream analyses such as k-mer statistics, background model
@@ -11,12 +11,14 @@ Main functionalities include :
     - Reverse complement computation of DNA k-mers
     - Canonical k-mer representation (strand-invariant k-mers)
     - K-mer counting in DNA sequences with optional strand handling
+    - Nucleotide frequency estimation from sequence datasets
+    - Sequence composition (nucleotide frequencies)
 
 These functions are used as building blocks for higher-level tools such as :
 
     - k-mer frequency analysis
     - Markov model parameter estimation
-    - sequence probability computation under background models
+    - sequence probability computation under background models (e.g. Bernoulli, Markov)
 
 All functions are designed to be modular, independent of Input/Output,
 and suitable for integration into bioinformatics workflows.
@@ -26,7 +28,11 @@ The canonical k-mer is a standardized representation of a DNA k-mer that account
 USAGE
     This module is intended to be imported and used in other scripts:
 
-    from kmer_counts import reverse_complementary, canonic_kmer, counts_kmer
+    from kmer_counts import reverse_complementary, canonic_kmer, counts_kmer, nucleotide_frequencies
+
+    # Load sequences
+    from sequences import read_fasta
+    sequences, total_length, seq_number = read_fasta("yeast_MET_upstream.fasta")
 
     # Reverse complement
     reverse_kmer = reverse_complementary("ATGC")
@@ -35,12 +41,13 @@ USAGE
     canon_kmer = canonic_kmer("ATGC")
 
     # K-mer counting
-    from sequences import read_fasta
-    sequences, total_length = read_fasta("input.fasta")
-
     observed_kmer_count = counts_kmer(kmer_length,
                                       sequences,
                                       strand_mode)
+
+    # Compute nucleotide frequencies
+    frequencies = nucleotide_frequencies(sequences)
+
 
 AUTHOR
     Anouk RISCH
@@ -187,3 +194,80 @@ def counts_kmer(k_length, sequence, strand_mode):
            kmer_count[key] += 1
 
     return kmer_count
+
+#########################################
+#   Function : Excepted frequencies     #
+#########################################
+def expected_frequencies(single_kmer, frequencies):
+    """
+    Calculate expected frequencies from a list of DNA k-mer sequences.
+
+    The function counts occurrences of valid nucleotide (A, C, G, T).
+    The expected frequency is computed as the product of the individual nucleotide frequencies,
+    assuming independence between positions.
+
+    For example:
+        P(ATG) = P(A) * P(T) * P(G)
+
+    Args:
+        single_kmer (str): DNA k-mer sequence (A, C, G, T).
+        frequencies (dict): Dictionary of nucleotide frequencies {"A" : freq_A,
+                                                                  "C" : freq_C,
+                                                                  "G" : freq_G,
+                                                                  "T" : freq_T,}.
+    Returns:
+        float: Expected frequency of the k-mer.
+    Raises:
+        KeyError: If the k-mer contains unsupported characters.
+     Example:
+        >>> freqs = {"A": 0.3, "T": 0.2, "G": 0.3, "C": 0.2}
+        >>> expected_frequencies("ATG", freqs)
+        0.018
+    """
+    probability = 1
+
+    for base in single_kmer:
+        # Expected number of occurrences for each base
+        probability *= frequencies[base]
+
+    return probability
+
+#########################################
+#   Function: nucleotides frequencies   #
+#########################################
+def nucleotide_frequencies(sequences):
+    """
+    Calculate nucleotide frequencies from a list of DNA k-mer sequences.
+
+    The function counts occurrences of valid nucleotides (A, C, G, T)
+    across all DNA sequences and ignores unknown bases such as N.
+
+    Args:
+        sequences (dict): Dictionary of DNA sequences {sequence_id : sequence}.
+    Returns:
+        dict: Relative frequencies of nucleotide  {"A" : freq_A,
+                                                   "C" : freq_C,
+                                                   "G" : freq_G,
+                                                   "T" : freq_T,}
+    Raises:
+         ZeroDivisionError: If no valid nucleotide is found.
+    """
+    # Initialization total number of nucleotides
+    total = 0
+    # Initialization a dictionary counter where key is base and value the number of times it was counted
+    # {"A":0, "T":0, "G":0, "C":0}
+    counts = Counter()
+
+    for seq in sequences.values():
+        for base in seq:
+            # Ignore N nucleotide
+            if base in "ACTG":
+                # Count each letter (+1 for each letter)
+                counts[base] += 1
+                # Total number of nucleotides
+                total += 1
+
+    # Create dico contain expected frequency for each base
+    frequencies = {base: counts[base] / total for base in "ATGC"}
+
+    return frequencies
