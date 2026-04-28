@@ -34,7 +34,7 @@ and derives different statistics:
 
 The computed statistics are adapted according to user-selected return fields. 
 
-Over-representation statistics rely on the comparusin between the k-mer occurrences observed in the input sequence set 
+Over-representation statistics rely on the comparison between the k-mer occurrences observed in the input sequence set 
 and those expected under a specified background model (Bernoulli or Markov). This background model is typically 
 estimated from a set of background sequences. 
 
@@ -44,7 +44,7 @@ The program takes as input a fasta-formatted sequence files, which can contains 
 
 ### Output format
 
-The output is a tablular text file (tab-separated values, recommended extension `.tsv`) with one row per k-mer
+The output is a tabular text file (tab-separated values, recommended extension `.tsv`) with one row per k-mer
 and one column per statistics. 
 
 The column content is indicated in the header of the output (row prefixed with a `#` character). 
@@ -265,7 +265,7 @@ By selecting the `both` option, the occurrences of each oligonucleotide are aggr
 ### 10. Getting Help
 List all options :
 ````commandline
-python3 kmer-analisys.py --help
+python3 /scripts/kmer_analysis.py --help
 ````
 ### 11. Pydoc
 Automatic Python code documentation : 
@@ -274,51 +274,50 @@ Automatic Python code documentation :
 
 **Command**
 ````commandline
-pydoc kmer-analysis
+pydoc /scripts/kmer_analysis.py
 ````
 ### 12. Probabilities
 
 EXPECTED OCCURRENCES  
 
-	                          S
-	   Exp_occ = p * T = p *  ∑ (Lj - k + 1)
-	                         j=1
+${Exp\_occ} = p \times T = p \times \sum_{j=1}^{S} (L_j - k + 1)$
 	
-	where	p  = probability of the pattern
-		S  = number of sequences in the sequence set. 
-		Lj = length of the jth regulatory region
-		k  = length of oligomer
-            T  = the number of possible matching positions.
+Where	
+- $p$ is the probability of the pattern
+- $S$ is the number of sequences in the sequence set. 
+- $L_j$ is the length of the jth regulatory region
+- $k$ is the length of oligomer
+- $T$ is the number of possible matching positions.
 
 NUMBER OF POSSIBLE POSITIONS  
 
-                s
-        T = j = ∑ (Lj − k + 1)
-               j=1  
+$T = j = \sum_{j=1}^{s} (L_j -k + 1)$
 
 
 PROBABILITY OF A SEQUENCE SEGMENT 
 
-**Bernoulli model**
+#### Bernoulli model
 
-            k
-        p = ∏ P * (ri)
-           i=1
+$p = \prod_{i=1}^{k} P(r_i)$ 
 
-    where   ri    = residue found at position I
-            P(ri) =  probability of this residue
 
-**Markov  model**
+Where   
+- $i = 1..k$ is the index of nucleotide positions
+- $ri$ is the residue found at position I   
+- $P(ri)$ is the probability of this residue
 
-        P(ri ∣ S i−m,1−i)
-    
-    where   S = sequence
-            i = current position
-            m = Markov model order
-            Si−m,1−i = m nucleotides previously
+#### Markov  model
+
+$P(r_i \mid S_{1-m,i-1}) $
+
+where   
+- $S$ is the sequence
+- $i$ is the current position 
+- $m$ is the Markov model order
+- $S_{i−m,1−i}$ = m nucleotides previously
 
 Sequence probability given the background mode
 
-                        k
-        p = P(ri) * i = ∏ P * (ri ∣S i−m,1−i)
-                       i=2
+$p = P(r_i) \times i = \prod_{i=2}^{k} P(r_i \mid S_{1-m,1-1})$
+
+          
