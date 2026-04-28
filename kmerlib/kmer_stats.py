@@ -195,42 +195,6 @@ def counts_kmer(k_length, sequence, strand_mode):
 
     return kmer_count
 
-#########################################
-#   Function : Excepted frequencies     #
-#########################################
-def expected_frequencies(single_kmer, frequencies):
-    """
-    Calculate expected frequencies from a list of DNA k-mer sequences.
-
-    The function counts occurrences of valid nucleotide (A, C, G, T).
-    The expected frequency is computed as the product of the individual nucleotide frequencies,
-    assuming independence between positions.
-
-    For example:
-        P(ATG) = P(A) * P(T) * P(G)
-
-    Args:
-        single_kmer (str): DNA k-mer sequence (A, C, G, T).
-        frequencies (dict): Dictionary of nucleotide frequencies {"A" : freq_A,
-                                                                  "C" : freq_C,
-                                                                  "G" : freq_G,
-                                                                  "T" : freq_T,}.
-    Returns:
-        float: Expected frequency of the k-mer.
-    Raises:
-        KeyError: If the k-mer contains unsupported characters.
-     Example:
-        >>> freqs = {"A": 0.3, "T": 0.2, "G": 0.3, "C": 0.2}
-        >>> expected_frequencies("ATG", freqs)
-        0.018
-    """
-    probability = 1
-
-    for base in single_kmer:
-        # Expected number of occurrences for each base
-        probability *= frequencies[base]
-
-    return probability
 
 #########################################
 #   Function: nucleotides frequencies   #
