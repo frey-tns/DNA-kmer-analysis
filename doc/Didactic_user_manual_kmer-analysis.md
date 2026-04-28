@@ -23,56 +23,81 @@ RISCH Anouk
 
 ### Introduction
 
-`kmer-analysis` is a command-line program designed to analyse biological sequences by counting and characterizing **k-mers**.
+`kmer-analysis` computes statistics about k-mer occurrences in DNA sequences.
 
-He operates on a single input sequence dataset and compares the observed oligonucleotide frequencies to those expected under a specified reference model (Bernoulli or Markov). This reference model is typically inferred from a set of background sequences, providing an estimate of baseline sequence composition and dependencies
+It counts the occurrences of all k-mers in a set of input sequences (provided as a fasta-formatted file),
+and derives different statistics:
+
+- observed k-mer occurrence counts and relative frequencies
+- expected occurrences and frequencies based on either a Bernoulli or a Markov model
+- over- or under-representation statistics (P-value, E-value, significance)
+
+The computed statistics are adapted according to user-selected return fields. 
+
+Over-representation statistics rely on the comparusin between the k-mer occurrences observed in the input sequence set 
+and those expected under a specified background model (Bernoulli or Markov). This background model is typically 
+estimated from a set of background sequences. 
 
 ### Input format
-The program takes as input a pair of sequence files in fasta format.
+
+The program takes as input a fasta-formatted sequence files, which can contains one or several sequences. 
 
 ### Output format
-The output is a tab-delimted file with one row per oligonucleotide,
-and one column per statistics.  
-The column content is detailed in the header of the output :
 
-| Columns   | Meaning                       |
-|:----------|:------------------------------|
-| seq       | oligomer sequence             |
-| id        | oligomer identifier           |
-| exp_freq  | expected relative frequency   |
-| obs_freq  | 	observed relative frequency  |
-| occ       | observed occurrences          |
-| exp_occ   | expected occurrences          |
+The output is a tablular text file (tab-separated values, recommended extension `.tsv`) with one row per k-mer
+and one column per statistics. 
+
+The column content is indicated in the header of the output (row prefixed with a `#` character). 
+
+| Column   | Description                  |
+|:---------|:-----------------------------|
+| seq      | oligomer sequence            |
+| id       | oligomer identifier          |
+| exp_freq | expected relative frequency  |
+| obs_freq | 	observed relative frequency |
+| occ      | observed occurrences         |
+| exp_occ  | expected occurrences         |
+
+Depending on the specified level of verbosity, the output can contain additional information in comment lines, 
+prefixed by a semicolumn character (`;`)
 
 ### 1. Basic usage: Counts Occurrences
 
-The simplest use of the program is to count how many times each k-mer appears.
+The simplest use of the program is to count the number of occurrences of each k-mer in the input sequences.
+
 ```commandline
-python3 kmer-analysis.py -i sequence.fa -k 2
+python3 scripts/kmer_analysis.py -i sequence.fa -k 2
 ```
 
-**Parameters**
+#### Parameters
 
 | Option | Meaning              |
 |--------|----------------------|
 | `-i`   | Input Fasta file     |
 | `-k`   | Length of the k-mers |
 
-**Example output**
+
+#### Output example
+
 ```
+#seq    occ
 AAA     12
 AAC     4
 AAG     7
 ```
-This means:
-- `AAA` appears 12 times 
+
+Interpretation: 
+
+- `AAA` appears 12 times in the sequence
 - `AAC` appears 4 times
 
-### 2. How K-mers are Counted
-The program uses a sliding window.  
-He scans each sequence using a sliding window of size k and counts all valid k-mers.
+### 2. How K-mers are counted
 
-**Example**  
+The tool scans each sequence using a sliding window of size $k$ and counts all valid k-mers. 
+The compute time thus increases linearly with the total sequence size (i.e. the sum of sequence sizes in the 
+input sequence file). 
+
+#### Example
 
 For `ATTCG` sequence  with `K=2`.
 
@@ -82,28 +107,46 @@ For `ATTCG` sequence  with `K=2`.
 |     1      |  TTC   |
 |     2      |  TCG   |
 
-Total numbers of windows :  
-`sequence_lenght - k + 1 `
+The total numbers of k-mer positions depends on the k-mer size and the sequence lengths    
 
-### 3. Computing Frequencies
-Raw counts are useful, however frequencies make it easier to compare sequences of different lengths.
+$N = \sum_{i=1}^{S} (L_i - k + 1)$
+
+Where $N$ is the number of positions where a k-mer can be found in the input sequences. 
+
+where 
+- $S$ is the number of sequence in the input file
+- $L_i$ is the length of the $i^{th}$ sequence
+- $k$ is the k-mer size
+
+
+### 3. Computing relative frequencies
+
+The option `-return freq` prints the observed relative frequencies, in addition to the observed occurrences. 
 
 **Output Example**
 ```
+#seq    occ         obs_freq
 AAA     occ=12      freq=0.031
-AAC     occ=2       freq=0.010    
+AAC     occ=2       freq=0.010
+...    
 ```
-**Interpretation :**  
 
-Frequency :  
-`occurence / total possible windows`  
+#### Interpretation
 
-Useful when comparing datasets of different sizes.
+$F(K) = \frac{N(K)}{\sum_{i=1}^{W}N(i)}$
+
+Where
+- $K$ is a given k-mer of size $k$
+- $N(K)$ is the number of occurrences of $K$
+- $F(K)$ is the relative frequency
+- $W$ is the number of k-mers (words) of size $k$ found in the sequence
 
 ### 4. Exploring Result as TSV
+
 To save results in tabular format :
+
 ```commandline
-python3 kmer-analysis.py -i sequences.fa -k 2 -o results.tsv
+python3 scripts/kmer_analysis.py -i sequences.fa -k 2 -o results.tsv
 ```
 TSV files can be opened in :  
 - Excel
@@ -168,7 +211,7 @@ The analysis can be performed using oligonucleotides of length ranging from 1 to
 
 **Command**
 ```commandline
-python3 kmer-analysis.py -i sequence.fa -k lengh_kmers
+python3 scripts/kmer_analysis.py -i sequence.fa -k lengh_kmers
 ```
 | Option | Meaning              |
 |--------|----------------------|
@@ -200,7 +243,7 @@ Limitations :
 ### 8. Reverse Complements - Strand Options
 **Command** 
 ```commandline
-python3 kmer-analysis.py -i sequences.fa -k 2 -o results.tsv -s both
+python3 scripts/kmer_analysis.py -i sequences.fa -k 2 -o results.tsv -s both
 ```
 | Option    | Meaning                       |
 |:----------|:------------------------------|
