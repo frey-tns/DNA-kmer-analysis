@@ -37,8 +37,7 @@ VERSION
 
 INSTALLATION
     
-    pip3 install bioseq_kmers
-
+    pip3 install -e .
 
 USAGE AND OPTIONS
 
