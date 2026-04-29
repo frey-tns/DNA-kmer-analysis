@@ -146,7 +146,7 @@ def canonic_kmer(kmer):
 #   Function : Count observed kmer  #
 #####################################
 
-def counts_kmer(k_length, sequence, strand_mode):
+def counts_kmer(sequence, k_length, strand_mode):
     """
     Count observed k-mers in a set of DNA sequences.
 

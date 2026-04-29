@@ -345,7 +345,7 @@ def main():
     # Nucleotides frequency
     frequencies = kmers.nucleotide_frequencies(sequences)
 
-    observed_kmer_count = kmers.counts_kmer(kmer_length, sequences, strand_mode)
+    observed_kmer_count = kmers.counts_kmer(sequences, kmer_length, strand_mode)
     # Number of all positions T = L - K + 1
     total_positions = sum(len(seq) - kmer_length + 1 for seq in sequences.values())
 
@@ -391,7 +391,7 @@ def main():
 
         # Expected frequencies
         if "exp_freq" in fields_compute:
-            exp_freq = expected_frequencies(canon_kmer, frequencies)
+            exp_freq = bg.expected_frequencies(canon_kmer, frequencies)
             row["exp_freq"] = exp_freq
 
         # Expected occurrences
@@ -399,7 +399,7 @@ def main():
             # Checks if exp_freq has already been calculated
             if "exp_freq" not in row:
                 # exp_freq does not yet exist
-                exp_freq = expected_frequencies(canon_kmer, frequencies)
+                exp_freq = bg.expected_frequencies(canon_kmer, frequencies)
             else:
                 # exp_freq already exists
                 exp_freq = row["exp_freq"]
