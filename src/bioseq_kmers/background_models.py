@@ -59,6 +59,8 @@ VERSION
     1.2, 2026-04-24
 """
 
+import bioseq_kmers.kmer_stats as kmers
+from collections import defaultdict
 
 
 #########################################
@@ -97,3 +99,55 @@ def expected_frequencies(single_kmer, frequencies):
         probability *= frequencies[base]
 
     return probability
+
+###############################
+#   Function : Markov model   #
+###############################
+
+def markov_model(sequences, order):
+    """
+    Build a markov transition matrix of order m from DNA sequences.
+
+    Args:
+        sequences (dict): {id: sequence}.
+        Order of the markov model :
+            order(int) = m = k–1 = 1
+    Example:
+        >>> sequences = {"s1":"ATCGT"}
+        >>> markov_model(sequences, order=1)
+        {'A': {'T':1.0}, 'T': {'C':1.0}, 'C': {'G':1.0}, 'G': {'T':1.0}}
+    """
+    length_kmer = order + 1
+
+    # Create a two-level dictionary (default value = 0.0)
+    transition_matrix = defaultdict(lambda: defaultdict(float))
+
+    # Number of occurrences of each k-mer in the sequences (k = m+1)
+    kmer_counts = kmers.counts_kmer(sequences, length_kmer, strand_mode="single")
+
+    # The dictionary stores the total number of occurrences per context
+    context_counts = defaultdict(int)
+
+    for kmer, count in kmer_counts.items():
+        # Extract prefix of Markov model
+        prefix = kmer[:-1]
+        # Next base extraction
+        suffix = kmer[-1]
+
+        # Order occurrences
+        context_counts[prefix] += count
+        # Increments a matrix cell
+        transition_matrix[prefix][suffix] += count
+
+    # Standardization (transforms counts into probabilities)
+    for prefix in transition_matrix :
+        # Total for this order
+        total = context_counts[prefix]
+        # Scans all the databases observed for this context
+        for base in transition_matrix[prefix]:
+            # Transforms an occurrence into a probability
+            transition_matrix[prefix][base] /= total
+
+    total_all = sum(context_counts.values())
+
+    return dict(transition_matrix), total_all, context_counts
