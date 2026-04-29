@@ -127,7 +127,7 @@ def main():
     # If the output path is a folder
     if os.path.isdir(output_file):
         # Define output path
-        output_path = os.path.join(output_file, f" bg_model_m{order}_{today}.tsv")
+        output_path = os.path.join(output_file, f"bg_model_m{order}_{today}.tsv")
     else:
         # Force the HTML extension
         if not output_file.endswith(".tsv"):
