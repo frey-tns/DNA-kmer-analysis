@@ -221,7 +221,7 @@ def main():
                 row_sum += p
 
 
-            tsv_file.write(f"{prefix}\t{'\t'.join(f'{p:.5f}' for p in row_prob)}\t{row_sum:.0f}\t{P_prefix:.4f}\n")
+            tsv_file.write(f"{prefix.lower()}\t{'\t'.join(f'{p:.5f}' for p in row_prob)}\t{row_sum:.0f}\t{P_prefix:.4f}\n")
 
         # Global sums
         tsv_file.write(f"; Sum\t"
