@@ -1,8 +1,8 @@
 """
-Expected k-mer frequency computation under a Bernoulli (0-order Markov) model.
+This library contains functions to handle background models for DNA sequences.
 
-This module provides a function to estimate the expected frequency (probability)
-of a DNA k-mer under the assumption that nucleotides occur independently.
+- expected_frequencies()  estimates k-mer probabilities under a Bernoulli model, which assumes
+indenpendence between nucleotides along the sequence
 
 In this model, the probability of a k-mer is computed as the product of
 individual nucleotide probabilities:
@@ -58,6 +58,9 @@ URL
 VERSION
     1.2, 2026-04-24
 """
+
+
+
 #########################################
 #   Function : Excepted frequencies     #
 #########################################
