@@ -16,8 +16,8 @@ from collections import defaultdict
 #   Internal libraries     #
 ############################
 
-from kmerlib.sequences import read_fasta
-from kmerlib.kmer_stats import (counts_kmer)
+import bioseq_kmers.sequences as seq
+import bioseq_kmers.kmer_stats as kmers
 
 ################################################################
 ## FUNCTIONS
@@ -46,7 +46,7 @@ def markov_model(sequences, order):
     transition_matrix = defaultdict(lambda: defaultdict(float))
 
     # Number of occurrences of each k-mer in the sequences (k = m+1)
-    kmer_counts = counts_kmer(sequences, length_kmer, strand_mode="single")
+    kmer_counts = kmers.counts_kmer(sequences, length_kmer, strand_mode="single")
 
     # The dictionary stores the total number of occurrences per context
     context_counts = defaultdict(int)
@@ -158,7 +158,7 @@ def main():
 
     ### Define variable to use the value in the script
     # Load sequence
-    sequences = read_fasta(args.input)
+    sequences = seq.read_fasta(args.input)
     output_file = args.output
     input_file = args.input
 
