@@ -1,4 +1,59 @@
-__version__ = 0.1
+"""
+Compute a transition matrix of a Markov background model from biological sequences.
+
+This program reads a set of input sequences (provided as a FASTA-formatted file),
+and builds a Markov transition matrix (transition matrix) of a specified order:
+
+- transition probabilities P(base | prefix)
+- prefix probabilities P(prefix)
+- orw sums (should equal 1)
+- global nucleotide frequencies (P_res)
+
+The model is estimated from observed k-mer counts (k = m + 1), where m is the
+order of the Markov model. For each prefix (context), the program computes the
+conditional probabilities of observing each nucleotide (A, C, G, T).
+
+The results are written to a TSV file.
+
+USAGE
+    python markov-from-seq -i data/yeast_MET_upstream.fasta -m 2 -o results/
+    python markov-model -i data/yeast_MET_upstream.fasta -m 2 -o results/
+
+
+OPTIONS
+    -i : input FASTA file
+    -o : output TSV file
+    -m : markov model order
+
+AUTHOR
+    Anouk RISCH
+
+CONTACT
+    https://github.com/frey-tns
+
+URL
+    https://github.com/frey-tns/DNA-kmer-analysis
+
+VERSION
+    0.1, 2026-04-30
+
+INSTALLATION
+
+    pip3 install -e .
+
+USAGE AND OPTIONS
+
+    For command-line usage, run:
+        markov-model --help
+        markov-from-seq --help
+
+EXAMPLES
+
+    markov-from-seq -i data/yeast_MET_upstream.fasta -m 2 -o results/
+
+"""
+
+version = 0.1
 #################
 #   Libraries   #
 #################
@@ -10,7 +65,6 @@ import os
 import shlex
 import sys
 
-from collections import defaultdict
 # Coloring warning text
 from colorama import init, Fore
 
@@ -18,7 +72,9 @@ from colorama import init, Fore
 #   Internal libraries     #
 ############################
 
+# Read FASTA file
 import bioseq_kmers.sequences as seq
+# Markov model background
 import bioseq_kmers.background_models as markov_bg
 
 ################################################################
@@ -75,6 +131,52 @@ def format_command_line(argv):
 #################
 
 def main():
+    """
+    Run the complete workflow to build a Markov background model from biological sequences.
+
+    This function parses command-line arguments, loads sequences from a FASTA file,
+    computes a Markov model transition matrix of a given order, and write the resulting model
+    to a TSV output file.
+
+    The generated output file contains:
+        - command line used
+        - program version and input file information
+        - transition matrix:
+            * prefix
+            * conditional probabilities P(base | prefix) for A, C, G, T
+            * row sum (should be equal to 1)
+            * prefix probability P(prefix)
+        - global statistics:
+            * sum of probabilities per base
+            * estimated residue frequencies (P_res)
+        - execution timestamps and runtime
+
+
+    Command-line arguments:
+        -i, --input:
+            Path to the input FASTA file.
+
+        -m, --markov:
+            Order of the Markov model.
+            The model uses k-mers of length k = m + 1
+
+        -o, --output:
+            Path to the output TSV file path or directory.
+
+
+    Raises:
+        FileNotFoundError: If the input FASTA file does not exist.
+        ValueError: If the input FASTA file is malformed.
+
+    Returns:
+        None
+
+    Notes:
+        - The transition probabilities are estimated from observed k-mer counts.
+        - The output format mimics RSAT background model files (e.g. create-background-model).
+        - Residue frequencies (P_res) are derived from aggregated transition probabilities
+
+    """
 
     # Time tracking (Benchmark)
     start_time = time.perf_counter()
@@ -134,6 +236,7 @@ def main():
             output_file += ".tsv"
         # If it's a file
         output_path = output_file
+
     # Write HTML file output
     with open(output_path, "w") as tsv_file:
         ## Parameter
@@ -142,7 +245,7 @@ def main():
         # Write command line
         tsv_file.write(f"; markov-from-seq\t{command_line}\n;\n")
         # URL in input
-        tsv_file.write(f"; Program version\t{__version__}\n"
+        tsv_file.write(f"; Program version\t{version}\n"
                        f"; Input file\t{os.path.relpath(input_file)}\n")
 
         # Header
@@ -153,19 +256,26 @@ def main():
         # Stock sums for final stats
         sum_bases = {b: 0.0 for b in base}
 
+        # Brows the prefixes of the Markov model
         for prefix in sorted(matrix.keys()):
+            # Extract conditional probabilities
             prob = matrix[prefix]
 
+            # Initialize values (A, C, G, T)
             row_prob = []
+            # Initialize sum of line (=1)
             row_sum = 0.0
 
             # P(prefix)
             P_prefix = context_counts[prefix] / total_all
 
             for b in base:
+                # Transition probability extract (P(b∣prefix)) (if empty = 0.0)
                 p = prob.get(b, 0.0)
                 row_prob.append(p)
+                # Overall sum (probabilities by base)
                 sum_bases[b] += p
+                # Row sum (sumP(b∣prefix)=1)
                 row_sum += p
 
 
