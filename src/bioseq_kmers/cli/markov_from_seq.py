@@ -1,6 +1,20 @@
 """
 Compute a transition matrix of a Markov background model from biological sequences.
 
+
+SYNOPSIS USAGE
+    Print usage line:
+        markov-from-seq
+
+    Print help message:
+        markov-from-seq --help
+
+    Usage:
+        markov-from-seq [-h] --input FASTA_FILE \
+           --markov-order MARKOV_ORDER --output OUTPUT_FILE
+
+DESCRIPTION
+
 This program reads a set of input sequences (provided as a FASTA-formatted file),
 and builds a Markov model (transition matrix) with a specified order:
 
@@ -8,13 +22,27 @@ The prefixes are k-mers with a length equal to  order of the Markov model (m).
 For each prefix (context), the program computes the conditional probabilities of observing each possible nucleotide
  (A, C, G, T) after an occurrence of the prefix.
 
-OUTPUT FORMAE
+
+OPTIONS
+    -h, --help
+        Show this help message and exit.
+
+    -i, --input FASTA_FILE
+        Input FASTA file.
+
+    -m, --markov-order MARKOV_ORDER
+        Markov model order.
+
+    -o, --output OUTPUT_FILE
+        Output TSV file.
+
+OUTPUT
 
 One row per prefix of the Markov model
 
 Column contents :
 - prefix
-- transition probabilities P(base | prefix)
+- transition probabilities P(base|prefix)
 - prefix probabilities P(prefix)
 - row sums (for validation, should equal 1)
 - global nucleotide frequencies (P_res)
@@ -23,40 +51,25 @@ The model is estimated from  k-mer counts (k = m + 1) observed in the input sequ
 
 The results are written to a tab-separated value file (extension .tsv).
 
-USAGE
+EXAMPLES
+
     markov-from-seq -i data/yeast_MET_upstream.fasta -m 2 -o results/bg_model_m2.tsv
 
-
-OPTIONS
-    -i : input FASTA file
-    -o : output TSV file
-    -m : markov model order
-
-AUTHOR
+AUTHOR / CREDITS
     Anouk RISCH
-
-CONTACT
-    https://github.com/frey-tns
-
-URL
-    https://github.com/frey-tns/DNA-kmer-analysis
+    supervised and revised by Jacques van Helden
 
 VERSION
     0.1, 2026-04-30
+
+CONTACT / URL
+    https://github.com/frey-tns
+    https://github.com/frey-tns/DNA-kmer-analysis
 
 INSTALLATION
 
     pip3 install -e .
 
-USAGE AND OPTIONS
-
-    For command-line usage, run:
-        markov-model --help
-        markov-from-seq --help
-
-EXAMPLES
-
-    markov-from-seq -i data/yeast_MET_upstream.fasta -m 2 -o results/
 
 """
 
