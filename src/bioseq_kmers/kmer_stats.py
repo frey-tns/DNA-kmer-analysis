@@ -4,7 +4,7 @@ K-mer and nucleotide statistics utilities for DNA sequence analysis.
 This module provides core functions to manipulate and analyze k-mers from biological DNA sequences.
 It is designed to be used as a reusable library for downstream analyses such as k-mer statistics, background model
 estimation (Bernoulli/Markov models), and sequence probability computation
-(e.g. kmer_analysis.py, markov_model.py, and sequence_prob.py).
+(e.g. kmer_analysis.py, markov_from_seq.py, and sequence_prob.py).
 
 Main functionalities include :
 
