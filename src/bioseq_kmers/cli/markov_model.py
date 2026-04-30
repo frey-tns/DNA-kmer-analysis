@@ -2,22 +2,29 @@
 Compute a transition matrix of a Markov background model from biological sequences.
 
 This program reads a set of input sequences (provided as a FASTA-formatted file),
-and builds a Markov transition matrix (transition matrix) of a specified order:
+and builds a Markov model (transition matrix) with a specified order:
 
+The prefixes are k-mers with a length equal to  order of the Markov model (m).
+For each prefix (context), the program computes the conditional probabilities of observing each possible nucleotide
+ (A, C, G, T) after an occurrence of the prefix.
+
+OUTPUT FORMAE
+
+One row per prefix of the Markov model
+
+Column contents :
+- prefix
 - transition probabilities P(base | prefix)
 - prefix probabilities P(prefix)
-- orw sums (should equal 1)
+- row sums (for validation, should equal 1)
 - global nucleotide frequencies (P_res)
 
-The model is estimated from observed k-mer counts (k = m + 1), where m is the
-order of the Markov model. For each prefix (context), the program computes the
-conditional probabilities of observing each nucleotide (A, C, G, T).
+The model is estimated from  k-mer counts (k = m + 1) observed in the input sequences,
 
-The results are written to a TSV file.
+The results are written to a tab-separated value file (extension .tsv).
 
 USAGE
-    python markov-from-seq -i data/yeast_MET_upstream.fasta -m 2 -o results/
-    python markov-model -i data/yeast_MET_upstream.fasta -m 2 -o results/
+    markov-from-seq -i data/yeast_MET_upstream.fasta -m 2 -o results/bg_model_m2.tsv
 
 
 OPTIONS
@@ -201,7 +208,7 @@ def main():
                        f"; Input file\t{os.path.relpath(input_file)}\n")
 
         # Header
-        tsv_file.write("#pr\\suf \ta\tc\tg\tt\tSum\tP_prefix\n")
+        tsv_file.write("#pr\\su \ta\tc\tg\tt\tSum\tP_prefix\n")
         
         base = ["A", "C", "G", "T"]
 
@@ -230,7 +237,7 @@ def main():
                 # Row sum (sumP(b∣prefix)=1)
                 row_sum += p
 
-
+            ## JvH : to do: handle the case of m=0 by printing out a dot instead of an empty prefix
             tsv_file.write(f"{prefix.lower()}\t{'\t'.join(f'{p:.5f}' for p in row_prob)}\t{row_sum:.0f}\t{P_prefix:.4f}\n")
 
         # Global sums
