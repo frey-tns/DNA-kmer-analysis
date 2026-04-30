@@ -19,3 +19,5 @@ dependencies = [
 
 [project.scripts]
 kmer-analysis = "bioseq_kmers.cli.kmer_analysis:main"
+markov-from-seq  = "bioseq_kmers.cli.markov_from_seq:main"
+markov-from-kmers = "bioseq_kmers.cli.markov_from_kmers:main"
