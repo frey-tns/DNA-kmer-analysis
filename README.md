@@ -19,16 +19,19 @@ Le script :
   - P-valeur
   - E-valeur
 
-## Installation 
-1. Prérequis  
-  - Python (version >= 3.x) 
-2. Installation des dépendances  🔴  
-pip install requests  
-pip install argparse  
+## Requirements
 
-... A COMPLETER ... 
+The requirements are described in the files
+
+- [environment.txt](environment.txt): user requirements
+- [environment-dev.txt](environment-dev.txt): additional requirements for developers
+
+## Installation
+
+pip install .
 
 ## Input 
+
 Fichier FASTA contenant les séquences ADN.
 
 → Modifier l'url du fichier fasta :  
@@ -38,6 +41,7 @@ url = "https://lien/vers/le/fichier.fasta"
 'python kmer-analysis.py -o chemin/vers/result.html'
 
 ## Utilisation
+
 Lancer le script :  
 
 python script.py (NOM A MODIFIER) 🟠
