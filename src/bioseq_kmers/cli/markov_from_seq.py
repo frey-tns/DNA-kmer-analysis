@@ -238,6 +238,8 @@ def main():
             # Initialize sum of line (=1)
             row_sum = 0.0
 
+            display_prefix = prefix if prefix != "" else "."
+
             # P(prefix)
             P_prefix = context_counts[prefix] / total_all
 
@@ -251,7 +253,7 @@ def main():
                 row_sum += p
 
             ## JvH : to do: handle the case of m=0 by printing out a dot instead of an empty prefix
-            tsv_file.write(f"{prefix.lower()}\t{'\t'.join(f'{p:.5f}' for p in row_prob)}\t{row_sum:.0f}\t{P_prefix:.4f}\n")
+            tsv_file.write(f"{display_prefix.lower()}\t{'\t'.join(f'{p:.5f}' for p in row_prob)}\t{row_sum:.0f}\t{P_prefix:.4f}\n")
 
         # Global sums
         tsv_file.write(f"; Sum\t"
@@ -260,6 +262,7 @@ def main():
 
         # Residue frequencies
         total_sum = sum(sum_bases.values())
+
 
         tsv_file.write(f"; P_res\t"
                        f"{'\t'.join(f'{sum_bases[b] / total_sum:.5f}' for b in base)}\n")
