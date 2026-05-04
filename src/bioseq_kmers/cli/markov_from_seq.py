@@ -9,7 +9,7 @@ SYNOPSIS USAGE
         markov-from-seq --help
 
     Usage:
-        markov-from-seq [-h] --input FASTA_FILE \
+        markov-from-seq [-h] --input FASTA_FILE
            --markov-order MARKOV_ORDER --output OUTPUT_FILE
 
 DESCRIPTION
