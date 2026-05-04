@@ -66,6 +66,7 @@ CONTACT / URL
     https://github.com/frey-tns/DNA-kmer-analysis
 
 """
+from bioseq_kmers.utils import min_interger
 
 version = 0.1
 #################
@@ -165,6 +166,7 @@ def main():
 
     parser.add_argument("-m", "--markov",
                         required=True,
+                        type=min_interger(0),
                         help="Order of the markov model (1-7)")
 
     parser.add_argument("-o", "--output",
