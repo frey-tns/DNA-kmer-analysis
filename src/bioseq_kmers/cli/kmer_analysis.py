@@ -1,6 +1,19 @@
 """
 Compute statistics about k-mer occurrences in biological sequences.
 
+SYNOPSIS USAGE
+    Print usage line:
+        kmer-analysis
+
+    Print help message:
+        kmer-analysis --help
+
+    usage:
+        kmer-analysis [-h] --input FASTA_FILE \
+         --kmer-length LENGTH_KMER --output OUTPUT_FILE
+
+DESCRIPTION
+
 This program counts the occurrences of all k-mers in a set of input sequences (provided as a fasta-formatted file),
 and derives different optional statistics :
 
@@ -13,36 +26,40 @@ counts/frequencies as well as to the derived statistics.
 
 The results are written to a TSV file.
 
-USAGE
-    python kmer-analysis.py -i input.fasta -k 6 -o output.tsv
 
 OPTIONS
-    -i : input FASTA file
-    -o : output TSV file
-    -k : k-mer size
-    -s : strand mode (single or both)
-    -r : parse return option ("occ, exp_occ, exp_freq, obs_freq")
+    -h, --help
+        Show this help message and exist.
 
-AUTHOR
-    Anouk RISCH
+    -i, --input FASTA_FILE
+        Input FASTA file.
 
-CONTACT
-    https://github.com/frey-tns
+    -k, --kmer:
+        Length of the K-mer sequences to analyse.
 
-URL
-    https://github.com/frey-tns/DNA-kmer-analysis
+    -s, --strand SINGLE_OR_BOTH
+        Strand mode to compute counts for.
 
-VERSION
-    1.2, 2026-04-24
+    -o, --output OUTPUT_FILE
+        Output TSV file.
 
-INSTALLATION
-    
-    pip3 install -e .
+    -r, --return
+        Parse return option ("occ, exp_occ, exp_freq, obs_freq").
 
-USAGE AND OPTIONS
+OUTPUT
 
-    For command-line usage, run:
-        kmer-analysis --help
+One row per observed k-mer in the input sequences.
+
+Column contents :
+- k-mer sequence
+- observed occurrence count
+- observed frequency
+- expected occurrence count (optional)
+- expected frequency (optional)
+
+For DNA sequences, reverse-complement pairs can optionally be merged before computing statistics.
+
+The results are written to a tab-separated value file (extension .tsv).
 
 EXAMPLES
 
@@ -52,7 +69,20 @@ EXAMPLES
         --return occ,obs_freq,exp_occ,exp_freq \\
         -o results/yeast_MET_upstream_6nt_2str.tsv
 
+AUTHOR / CREDITS
+    Anouk RISCH
+    supervised and revised by Jacques van Helden
 
+VERSION
+    1.2, 2026-04-24
+
+CONTACT / URL
+    https://github.com/frey-tns
+    https://github.com/frey-tns/DNA-kmer-analysis
+
+INSTALLATION
+
+    pip3 install -e .
 
 """
 
@@ -206,6 +236,9 @@ def main():
 
         -s, --strand:
             Strand mode to compute counts for.
+
+        -r, --return:
+            Output TSV file path or output directory.
 
     Raises:
         FileNotFoundError: If input FASTA file does not exist.

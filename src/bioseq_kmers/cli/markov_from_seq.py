@@ -1,7 +1,6 @@
 """
 Compute a transition matrix of a Markov background model from biological sequences.
 
-
 SYNOPSIS USAGE
     Print usage line:
         markov-from-seq
