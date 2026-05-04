@@ -1,4 +1,79 @@
-__version__ = 0.1
+"""
+Estimate the parameters of a Markov background model from a kmer counting table and output a transition matrix.
+
+SYNOPSIS USAGE
+    Print usage line:
+        markov-from-kmers
+
+    Print help message:
+        markov-from-kmers --help
+
+    Usage:
+        markov-from-kmers [-h] --input KMER_TABLE
+           --markov MARKOV_ORDER --output OUTPUT_FILE
+
+DESCRIPTION
+
+This program reads a kmer counting table (tab-separated file), and builds a Markov model
+(transition matrix) with a user-specified order. The order of the Markov model corresponds to the size of the
+prefix (oligonucleotide) to compute the conditional probabilities P(base|prefix).
+
+The input file is expected to contain at least:
+- a header line starting with "#"
+- a column describing k-mer sequences (e.g. "seq" or "sequence")
+- a column describing k-mer occurrences (e.g. "occ" or "occurrence")
+
+For a Markov model of order m:
+- prefixes have length m
+- input k-mers must have length m + 1
+
+OPTIONS
+    -h, --help
+        Display this help message and exit.
+
+    -i, --input KMER_TABLE
+        Input kmer counting table.
+
+    -m, --markov MARKOV_ORDER
+        Markov model order.
+
+    -o, --output OUTPUT_FILE
+        Output TSV file.
+
+OUTPUT
+
+One row per prefix of the Markov model
+
+Column contents :
+- prefix
+- transition probabilities P(base|prefix)
+- prefix probabilities P(prefix)
+- row sums (for validation, should equal 1)
+- global nucleotide frequencies (P_res)
+
+The model is estimated from  k-mer counts (k = m + 1) observed in the input sequences,
+
+The results are written to a tab-separated value file (extension .tsv).
+
+EXAMPLES
+
+    markov-from-kmers -i data/3nt_counts.tsv -m 2 -o results/
+    markov-from-kmers -i data/1nt_counts.tsv -m 0 -o results/
+
+AUTHOR / CREDITS
+    Anouk RISCH
+    supervised and revised by Jacques van Helden
+
+VERSION
+    0.1, 2026-05-04
+
+CONTACT / URL
+    https://github.com/frey-tns
+    https://github.com/frey-tns/DNA-kmer-analysis
+
+"""
+
+version = 0.1
 #################
 #   Libraries   #
 #################
@@ -25,18 +100,81 @@ import bioseq_kmers.utils as utils
 ## FUNCTIONS
 ################################################################
 
-###########################
-#   Function: load kmer   #
-###########################
-def load_kmer_counts(path):
+#######################################
+#   Function: reads a table of kmer   #
+#######################################
+def load_kmer_counting_table(path):
+    """
+    Read a k-mer counting table in RSAT tabular format and extract occurrence counts.
 
-    counts = {}
+    This function parses a tab-separated file containing k-mer statistics produced by
+    kmer analysis tools (e.g. RSAT oligo-analysis or kmer-analysis).
+
+    The input file must contain:
+    - a header line starting with "#"
+    - a tab-separated file containing k-mer column (e.g; 'seq' or 'sequence')
+    - a tab-separated file containing occurrence column (e.g. 'occ' or 'occurrence')
+
+    Args:
+        path (str): Path to the input k-mer counting table file
+    Returns:
+        dict : Dictionary mapping k-er sequence to occurrence counts.
+            {kmer(str): occ(int)}.
+    Raises:
+        ValueError: If the input file does not contain a header line starting with "#" or header line
+                    missing required columns ('seq', 'occ').
+    """
+
+    # Final result
+    dico_counts = {}
+    # Dict where key is column name and values is the index
+    col_index = None
+
+    # Read file
     with open(path,'r') as f:
         for line in f:
-            kmer, count = line.split()
-            counts[kmer] = int(count)
+            # Remove the line breaks
+            line = line.strip()
 
-    return counts
+            # Ignore empty lines or line who start with ; (RSAT comment)
+            if not line or line.startswith(";"):
+                continue
+
+            if line.startswith("#"):
+                # Create list who contain the table header
+                header = line.lstrip("#").strip().split()
+                # Associates the column name with its index
+                col_index = {name: i for i, name in enumerate(header)}
+                continue
+
+            # If missing header
+            if col_index is None:
+                raise  ValueError("Missing header line start with #")
+
+            # Line parsing
+            parts = line.split("\t")
+
+            # Fold over if spaces are used instead of tabs
+            if len(parts) == 1:
+                parts = line.split()
+
+            # Extract kmer
+            if "seq" in col_index:
+                kmer = parts[col_index["seq"]]
+            elif "sequence" in col_index:
+                kmer = parts[col_index["sequence"]]
+            # Extract occurrence
+            if "occ" in col_index:
+                occ = int(parts[col_index["occ"]])
+            elif "occurrence" in col_index:
+                occ = int(parts[col_index["occurrence"]])
+            else:
+                # If no column find → error
+                raise ValueError("No occurrence column found (occ)")
+
+            dico_counts[kmer] = occ
+
+    return dico_counts
 
 #################
 #   Main code   #
@@ -76,10 +214,25 @@ def main():
     # Load sequence
     output_file = args.output
     input_file = args.input
-    order = args.markov
+    order = int(args.markov)
 
     # Build Markov model
-    kmer_counts = load_kmer_counts(input_file)
+    kmer_counts = load_kmer_counting_table(input_file)
+
+    # Check that all kmer have the same length
+    kmer_length = {len(kmer) for kmer in kmer_counts}
+
+    if len(kmer_length) != 1:
+        raise ValueError("Input file must contain kmers of identical length.")
+
+    kmer_length = kmer_length.pop()
+
+    # Check compatility between kmer length and Markov order
+    expected_order = kmer_length - 1
+
+    if expected_order != order:
+        raise ValueError(f"Incompatible order: input kmers have length {kmer_length},"
+                         f"so the compatible Markov order is {expected_order} but got {order}.")
 
     # Markov model from kmers
     matrix, total_all, context_counts = markov_bg.markov_from_kmers(kmer_counts, order)
@@ -109,11 +262,11 @@ def main():
         # Write command line
         tsv_file.write(f"; markov-from-kmers\t{command_line}\n;\n")
         # URL in input
-        tsv_file.write(f"; Program version\t{__version__}\n"
+        tsv_file.write(f"; Program version\t{version}\n"
                        f"; Input file\t{os.path.relpath(input_file)}\n")
 
         # Header
-        tsv_file.write("#pr\\suf \ta\tc\tg\tt\tSum\tP_prefix\n")
+        tsv_file.write("#pr\\su \ta\tc\tg\tt\tSum\tP_prefix\n")
 
         base = ["A", "C", "G", "T"]
 
@@ -126,6 +279,8 @@ def main():
             row_prob = []
             row_sum = 0.0
 
+            display_prefix = prefix if prefix != "" else "."
+
             # P(prefix)
             P_prefix = context_counts[prefix] / total_all
 
@@ -136,7 +291,7 @@ def main():
                 row_sum += p
 
             tsv_file.write(
-                f"{prefix.lower()}\t{'\t'.join(f'{p:.5f}' for p in row_prob)}\t{row_sum:.0f}\t{P_prefix:.4f}\n")
+                f"{display_prefix.lower()}\t{'\t'.join(f'{p:.5f}' for p in row_prob)}\t{row_sum:.0f}\t{P_prefix:.4f}\n")
 
             # Global sums
         tsv_file.write(f"; Sum\t"

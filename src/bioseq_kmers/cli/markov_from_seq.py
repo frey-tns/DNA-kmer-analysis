@@ -10,7 +10,7 @@ SYNOPSIS USAGE
 
     Usage:
         markov-from-seq [-h] --input FASTA_FILE
-           --markov-order MARKOV_ORDER --output OUTPUT_FILE
+           --markov MARKOV_ORDER --output OUTPUT_FILE
 
 DESCRIPTION
 
@@ -29,7 +29,7 @@ OPTIONS
     -i, --input FASTA_FILE
         Input FASTA file.
 
-    -m, --markov-order MARKOV_ORDER
+    -m, --markov MARKOV_ORDER
         Markov model order.
 
     -o, --output OUTPUT_FILE
