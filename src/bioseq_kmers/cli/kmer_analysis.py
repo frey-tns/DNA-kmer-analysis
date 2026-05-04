@@ -9,46 +9,66 @@ SYNOPSIS USAGE
         kmer-analysis --help
 
     usage:
-        kmer-analysis [-h] --input FASTA_FILE \
+        kmer-analysis [-h] --input FASTA_FILE
          --kmer-length LENGTH_KMER --output OUTPUT_FILE
 
 DESCRIPTION
 
-This program counts the occurrences of all k-mers in a set of input sequences (provided as a fasta-formatted file),
-and derives different optional statistics :
+This program computes the occurrences of each k-mer in a set of input sequences (provided as a fasta-formatted file),
+and derives different statistics, depending on the user-specified options:
 
-- observed k-mer occurrence counts and relative frequencies
+- observed k-mer occurrences (counts) and relative frequencies
 - expected occurrences and frequencies based on either a Bernoulli or a Markov model
-- over- or under-representation statistics (P-value, E-value, significance)
+- over- or under-representation statistics (binomial P-value, E-value, significance)
 
-For DNA sequences, k-mers can optionally be grouped by pairs of reverse-complements. This applies to the observed
-counts/frequencies as well as to the derived statistics.
+For DNA sequences, k-mers can optionally be grouped by pairs of reverse complements.
+This applies to the observed counts/frequencies as well as to the derived statistics.
 
 The results are written to a TSV file.
 
 
 OPTIONS
     -h, --help
-        Show this help message and exist.
+        Display this help message and exit.
 
     -i, --input FASTA_FILE
-        Input FASTA file.
+        Input sequence file in fasta format.
 
-    -k, --kmer:
-        Length of the K-mer sequences to analyse.
+    -k, --kmer KMER_LENGTH
+        Length of the k-mer sequences to analyze (integer ≥ 1).
 
-    -s, --strand SINGLE_OR_BOTH
+    -s, --strand {single,both}
         Strand mode to compute counts for.
+        Handling of the strands for computing the occurrences and derived statistics.
+
+        single: count occurrences on the forward strand only
+        both: regroup k-mers by pairs of reverse complements
+            This actually makes the counts and derived statistics strand-insensitive
 
     -o, --output OUTPUT_FILE
-        Output TSV file.
+        Output file in tab-separated values, with recommended extension .tsv
 
-    -r, --return
-        Parse return option ("occ, exp_occ, exp_freq, obs_freq").
+    -r, --return FIELD[,FIELD...]
+        Comma-separated list of output fields.
+
+-r, --return FIELD[,FIELD...]
+    Comma-separated list of output fields (one or more).
+
+    Accepted values:
+        occ       : observed occurrences
+        obs_freq  : observed relative frequency
+        exp_occ   : expected occurrences
+        exp_freq  : expected frequency
+
+        proba     : statistical significance measures, including:
+            p_value : binomial P-value according to the specified background model
+            e_value : E-value, i.e. P-value × T, where T is the number of k-mers tested
+            sig     : significance score, defined as -log10(E-value)
 
 OUTPUT
 
-One row per observed k-mer in the input sequences.
+A tab-separated value file (extension  .tsv) with ne row per observed k-mer in the input sequences,
+and one column per k-mer statistics.
 
 Column contents :
 - k-mer sequence
@@ -56,10 +76,6 @@ Column contents :
 - observed frequency
 - expected occurrence count (optional)
 - expected frequency (optional)
-
-For DNA sequences, reverse-complement pairs can optionally be merged before computing statistics.
-
-The results are written to a tab-separated value file (extension .tsv).
 
 EXAMPLES
 
@@ -74,15 +90,12 @@ AUTHOR / CREDITS
     supervised and revised by Jacques van Helden
 
 VERSION
-    1.2, 2026-04-24
+    0.2, 2026-05-05
 
 CONTACT / URL
     https://github.com/frey-tns
     https://github.com/frey-tns/DNA-kmer-analysis
 
-INSTALLATION
-
-    pip3 install -e .
 
 """
 
