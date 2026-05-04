@@ -1,0 +1,130 @@
+---
+title: "K-mer statistics"
+author: "Jacques van Helden"
+date: '`r Sys.Date()`'
+output:
+  html_document:
+    self_contained: no
+    fig_caption: yes
+    highlight: zenburn
+    theme: cerulean
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  slidy_presentation:
+    smart: no
+    slide_level: 2
+    self_contained: yes
+    fig_caption: yes
+    fig_height: 6
+    fig_width: 7
+    highlight: tango
+    incremental: no
+    keep_md: yes
+    smaller: yes
+    theme: cerulean
+    toc: yes
+    widescreen: yes
+  revealjs::revealjs_presentation:
+    theme: night
+    transition: none
+    self_contained: true
+    css: ../../slides.css
+  ioslides_presentation:
+    slide_level: 2
+    self_contained: no
+    colortheme: dolphin
+    fig_caption: yes
+    fig_height: 6
+    fig_width: 7
+    fonttheme: structurebold
+    highlight: tango
+    smaller: yes
+    toc: yes
+    widescreen: yes
+  pdf_document:
+    fig_caption: yes
+    highlight: zenburn
+    toc: yes
+    toc_depth: 3
+  beamer_presentation:
+    colortheme: dolphin
+    fig_caption: yes
+    fig_height: 6
+    fig_width: 7
+    fonttheme: structurebold
+    highlight: tango
+    incremental: no
+    keep_tex: no
+    slide_level: 2
+    theme: Montpellier
+    toc: yes
+font-import: http://fonts.googleapis.com/css?family=Risque
+subtitle: LCG_BEII 2019
+font-family: Garamond
+transition: linear
+---
+
+## Scope
+
+This document summarizes the statistics used to detect exceptional k-mers in biological sequences. The criterion for exceptionality can be over-representation (right-tailed test), under-representation (left-tail test) or both (bilateral test). 
+
+These statistics are implemented in the python package `bioseq_kmers`.
+
+- `markov-from-seq`: estimates the parameters of a Markov model from an input sequence set – and by extension, a Bernoulli model
+- `seq-proba`: computes the probability of input sequences given a Markov model
+- `kmer-analysis`: counts k-mer occurrences in a set of input sequences, and derives different statistics. 
+
+## Markov models
+
+## K-mer prior probabilities
+
+The prior probability of a k-mer is the probability to find by chance an occurrence of this k-mer at a given position of the input sequence. 
+
+
+
+
+## Over- and under-representation statistics
+
+We model the k-mer occurrences as a Bernouilli schema, i.e. a succession of trials where
+
+1. each trial (position in the sequence) can have two possible outcomes : 
+
+    - **success** : an occurrence of the k-mer starts at this position)
+    - **failure** : this position is not the beginning pf an occurrence of the considered k-mer)
+
+2. the successive trials are independent, i.e. the outcome of the $i^{th}$ trial does not affect the probabilities of success/failure of the trial $i+1$. 
+
+3. the probability of success, $p$ is the same for each trial
+
+Of note, in biological sequences, k-mer occurrences do not match with conditions 2 and 3. 
+
+Indeed, for self-overlapping k-mers (`AAAAAA`, `TATATA`, `ATGCAA`), the presence of the k-mer at position $i$ strongly increases the probability to find it at the next positions. For example, if `AAAAAA` is found at posiiton   $i$ of a sequence, finding an overlapping occurrence at position $i+1$ only requires to have one additional `A` just after `AAAAAA`. 
+
+Several approaches have been developed to handle this problem. 
+
+We use a pragmatic solution : we only count the ***renewing occurrences***. 
+
+Under this condition, the binomial probability provides a reasonable approximation. 
+
+### Parameters for the binomial
+
+We consider each k-mer in turn
+
+- $k$ k-mer size (number of residues)
+- $W$: the considered k-mer
+- $p$: prior probability of $W$, i.e. the probability to observe $W$ at any position $i$ of a sequence
+- $N$: the size of the Bernoulli schema, i.e. the number of positions where we appply the Bernoulli trial (success/failure). 
+
+
+
+$N = \sum_{s=1}^S{L_s - k + 1}$
+
+```{r }
+
+```
+
+
+
+
+
