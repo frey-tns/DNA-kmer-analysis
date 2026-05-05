@@ -113,6 +113,9 @@ import sys
 
 # Coloring warning text
 from colorama import init, Fore
+
+from bioseq_kmers.utils import min_interger
+
 # To reset color
 init(autoreset=True)
 
@@ -282,7 +285,7 @@ def main():
 
     parser.add_argument("-k", "--kmer-length",
                         required=True,
-                        type=int,
+                        type=min_interger(1),
                         help="Length of k-mer sequence (1-10)")
 
     parser.add_argument("-o", "--output",
@@ -299,6 +302,7 @@ def main():
                         type = str,
                         default = None,
                         help = "Comma-separated list of fields to return. Default: occ,freq. Supported values: occ,obs_freq,exp_occ,exp_freq")
+
     # Reads the command typed in the terminal
     args = parser.parse_args()
 
