@@ -1,5 +1,5 @@
 """
-Estimate the parameters of a Markov background model from a kmer counting table and output a transition matrix.
+Compute sequence probabilities from a Markov background model.
 
 SYNOPSIS USAGE
     Print usage line:
@@ -14,6 +14,18 @@ SYNOPSIS USAGE
 
 DESCRIPTION
 
+This program computes the probability of each sequence (provided as a FASTA-formatted file) under a Markov background model.
+
+The input consists of:
+- a FASTA file containing DNA sequences
+- a Markov transition matrix in RSAT tabular format
+(typically produced by markov-from-seq or markov-from-kmers)
+
+For each sequence, the program:
+- reads the initial prefix probability P(prefix)
+- multiplies it by the transition probabilities of each successive residue
+
+If a sequence contains a prefix or context absent from the model, its probability it set to 0.
 
 OPTIONS
     -h, --help
@@ -23,7 +35,7 @@ OPTIONS
         Path to the input FASTA file.
 
     -m, --matrix MATRIX_MARKOV_FILE
-        Input Markov matrix.
+        Path to the Markov transition matrix in tabular format.
 
     -o, --output OUTPUT_FILE
         Output TSV file.
@@ -33,14 +45,20 @@ OUTPUT
 A tab-separated file with one row per sequence.
 
 Column contents :
-- seq ID (sequence ID)
-- seq proba (sequence probability)
+- id
+    Sequence identifier from the FASTA file.
+- length
+    Sequence length of the FASTA file.
+- proba_b
+    Probability of the sequence under the Markov background model.
+- log_p
+    Log10 of the probability of the sequence under the Markov background model.
 
 The results are written to a tab-separated value file (extension .tsv).
 
 EXAMPLES
 
-    seq-proba -i data/3nt_counts.tsv -m markov_transitions_m2_2026_05_04.tsv -o results/
+    seq-proba -i data/yeast_MET_upstream.fasta  -m data/markov_transitions_m2_2026_05_04.tsv -o ../result
 
 AUTHOR / CREDITS
     Anouk RISCH
@@ -63,6 +81,7 @@ import time
 import datetime
 import os
 import sys
+import math
 
 # Coloring warning text
 from colorama import init, Fore
@@ -84,39 +103,111 @@ import bioseq_kmers.utils as utils
 ###################################
 def load_markov_matrix(path):
     """
-    Read a markov transition matrix
+    Read a markov transition matrix from a tabular RSAT-like file.
+
+    The function reads a Markov background model produced by tolls such as `markov-from-seq` or
+    `markov-from-kmers`. It parses a tab separated file containing prefix, transition probabilities
+    ofr each nucleotide, and prefix probabilities.
+
+    The prefix columns can be named either `pr\\su` or 'pr\\suf`.
+    The Markov order is inferred from the length of the observed prefixes.
 
     Args:
-
+        path (str): Path to te Markov transition matrix file (.tsv).
     Returns:
+        dict: A dictionary containing:
+        - dict_matrix (dict): Transition probabilities such taht:
+        matrix[prefix][base] = P(base | prefix)
+        - dict_prefix_prob (dict): Probability of each prefix P(prefix)
+        - dict_order (int): Markov order (length of prefix)
+    Raises:
+        ValueError: If the file is malformed, missing required columns,
+        or contains no valid matrix data.
+    Notes:
+        - Prefix are converted to uppercase internally
+        - '.' is interpreted as an empty prefix (order 0 mode)
     """
-    matrix = {}
-    prefixes_prob = {}
+    # Dict transition probabilities
+    dict_matrix = {}
+    # Dict where key is base and value is the initial probability per base
+    dict_prefixes_prob = {}
+    # column index
+    col_index = None
 
+    # Read file
     with open(path, 'r') as f:
         for line in f:
+            # Remove line breaks and spaces
             line = line.strip()
 
-            if not line or line.startswith(";") or line.startswith('#'):
+            # Skip empty lines and RSAT comments
+            if not line or line.startswith(";"):
                 continue
 
+            # Read header
+            if line.startswith("#"):
+                header = line.lstrip("#").strip().split()
+                col_index = {name: i for i, name in enumerate(header)}
+                # The header line should not be treated as a data line.
+                continue
+
+            # If header doesnt exist
+            if col_index is None:
+                # Error message
+                raise ValueError("Missing header line starting with '#'.")
+
+            # Columns are separated by tabs
             parts = line.split("\t")
+            # If TSV malformed
+            if len(parts) == 1:
+                # Automatically separates on any space
+                parts = line.split()
 
-            prefix = parts[0]
-            prefix = "" if prefix == "." else prefix.upper()
+            # Ignore the comment lines
+            if parts[0].startswith(";"):
+                continue
 
-            matrix[prefix] = {"a": float(parts[1]),
-                              "c": float(parts[2]),
-                              "g": float(parts[3]),
-                              "t": float(parts[4])}
+            # Prefix column selection.
+            if "pr\\su" in col_index:
+                prefix_col = "pr\\su"
+            elif "pr\\suf" in col_index:
+                prefix_col = "pr\\suf"
+            else:
+                # Error message if prefix is missing
+                raise ValueError("Missing prefix column ('pr\\suf' or 'pr\\su').")
 
-            prefixes_prob[prefix] = float(parts[6])
+            # Required columns
+            for col in ["a", "c", "g", "t", "P_prefix"]:
+                if col not in col_index:
+                    # Error message if not required columns
+                    raise ValueError(f"Missing column '{col}'.")
 
-    first_prefix = next(iter(matrix))
+            # Read prefix
+            prefix = parts[col_index[prefix_col]]
+            if prefix == ".":
+                prefix = ""
+            else:
+                prefix = prefix.upper()
+
+            # Reading transition probabilities
+            dict_matrix[prefix] = {"A": float(parts[col_index["a"]]),
+                              "C": float(parts[col_index["c"]]),
+                              "G": float(parts[col_index["g"]]),
+                              "T": float(parts[col_index["t"]])}
+
+            # Reading prefix probabilities
+            dict_prefixes_prob[prefix] = float(parts[col_index["P_prefix"]])
+
+    if not dict_matrix:
+        raise ValueError("No markov transition matrix data found.")
+
+    # Extract first prefix
+    first_prefix = next(iter(dict_matrix))
+    # Deducing the order of the model
     order = len(first_prefix)
 
-    return {"matrix": matrix,
-            "prefixes_prob": prefixes_prob,
+    return {"matrix": dict_matrix,
+            "prefixes_prob": dict_prefixes_prob,
             "order": order}
 
 ######################################
@@ -124,46 +215,79 @@ def load_markov_matrix(path):
 ######################################
 def sequence_probability(sequence, model):
     """
-    Compute sequence probability from a Markov model.
+    Compute sequence probability of a biological sequence given a Markov background model.
+
+    The probability is computed using an order k Markov chain, where k is defined by the model order.
+    For order 0, bases are assumed independent. For higher orders, the probability is computed as:
+
+        P(s) = P(prefix) × Π P(base_i | context_i)
+
+    where context_i is the kmer preceding each base.
 
     Args:
-        sequence (str): sequence
-        model(dict): Markov model
+        sequence (str): biological sequence (automatically converted to uppercase).
+        model (dict): Markov model containing:
+            - "matrix" (dict): Transition probabilities such that
+            matrix[context][base] = P(base_i | context_i)
+            - "prefixes_prob" (dict): Probability of each prefix P(prefix)
+            -"order" (int): Markov order (length of prefix(kmer))
     Returns:
-        float
+        float: Probability of the sequence under the Markov model.
+        Returns 0.0 if the sequence is too short, if a required prefix
+        is missing, or if an unknow context/base is encountered.
+
+    Notes:
+        - If order == 0, bases are assumed independent (Bernoulli).
+        - All sequences are normalized to uppercase internally
+
     """
 
+    # Sequence normalization
     sequence = sequence.upper()
 
+    # Extract transition
     matrix = model["matrix"]
+    # Extract probabilities
     prefixes_prob = model["prefixes_prob"]
+    # Extract kmer length (=order)
     order = model["order"]
 
+    ## Special case: order 0
     if order == 0:
         prob = 1.0
         for base in sequence:
+            # Independently multiplies each base
             prob *= matrix[""].get(base.upper(), 0.0)
         return prob
 
+    # If the sequence is too short
     if len(sequence) < order:
         return 0.0
 
+    # Extract first prefix
     prefix = sequence[:order]
 
-    if prefix in prefixes_prob:
+    # If no prefix
+    if prefix not in prefixes_prob:
         return 0.0
 
+    # Prefix initialize
     prob = prefixes_prob.get(prefix, None)
     if prob is None:
         return 0.0
 
+    # Navigate the sequence starting from order
     for i_index in range(order, len(sequence)):
+        # Extract prefix
         context = sequence[i_index - order:i_index]
+        # Next base
         base = sequence[i_index]
 
+        # If no prefix
         if context not in matrix:
             return 0.0
 
+        # Markov multiplication P(base∣context)
         prob *= matrix[context].get(base, 0.0)
 
     return prob
@@ -208,6 +332,9 @@ def main():
     model_file = args.matrix
     output_file = args.output
 
+    if output_file is None:
+        output_file = "."
+
     ############################
     #   Load data
     ############################
@@ -230,13 +357,13 @@ def main():
         # Define output path
         output_path = os.path.join(output_file, f"seq_proba_{today}.tsv")
     else:
-        # Force the HTML extension
+        # Force the TSV extension
         if not output_file.endswith(".tsv"):
             output_file += ".tsv"
         # If it's a file
         output_path = output_file
 
-    # Write HTML file output
+    # Write TSV file output
     with open(output_path, "w") as tsv_file:
         ## Parameter
         # Command line
@@ -247,12 +374,19 @@ def main():
         tsv_file.write(f"; Program version\t{version}\n"
                        f"; Input file\t{os.path.relpath(input_file)}\n")
         # Header
-        tsv_file.write("seq_id\tseq_proba\n")
+        tsv_file.write("#id\tlength\tproba_b\tlog_proba\n")
 
         for seq_id, sequence in sequences.items():
             p = sequence_probability(sequence, model)
+            length_seq = len(sequence)
 
-            tsv_file.write(f"{seq_id}\t{p:.6e}\n")
+            # Log probabilities
+            if p == 0:
+                log_p = float("-inf")
+            else:
+                log_p = math.log10(p)
+
+            tsv_file.write(f"{seq_id}\t{length_seq}\t{p:.6e}\t{log_p:.2f}\n")
 
 
         # End time
@@ -267,9 +401,6 @@ def main():
 
     print(f"{Fore.GREEN}Output written to {output_path}")
     print(f"{Fore.CYAN}Duration : {duration:.3f} seconds\n")
-
-    print("Nb contexts dans modèle:", len(model["matrix"]))
-    print("Exemple contexts:", list(model["matrix"].keys())[:10])
 
 #####################
 #   Executing code  #
