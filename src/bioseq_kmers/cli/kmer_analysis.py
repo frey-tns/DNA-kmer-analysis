@@ -285,6 +285,10 @@ def main():
                         type=int,
                         help="Length of k-mer sequence (1-10)")
 
+    parser.add_argument("-bg", "--bg-order",
+                        required=False,
+                        help="Estimate background Markov model of given order from input sequences")
+
     parser.add_argument("-o", "--output",
                         required=True,
                         help="Path to the output file directory")
@@ -311,7 +315,6 @@ def main():
 
     fields_compute = resolve_dependencies(requested_fields)
 
-
     ## CONDITION : does the files already exist ?
 
     # Extract the folder from the full path
@@ -335,6 +338,17 @@ def main():
     ###################
     #    Statistics   #
     ###################
+
+    model = None
+
+    if args.bg_order is not None:
+        matrix, total_all, context_counts = bg.markov_model(sequences, args.bg_order)
+
+        prefixes_prob = {prefix: context_counts[prefix] / total_all for prefix in context_counts.keys()}
+
+        model = {"matrix": matrix,
+                 "prefixes_prob": prefixes_prob,
+                 "order": args.bg_order}
 
     # Nucleotides frequency
     frequencies = kmers.nucleotide_frequencies(sequences)
@@ -385,7 +399,10 @@ def main():
 
         # Expected frequencies
         if "exp_freq" in fields_compute:
-            exp_freq = bg.expected_frequencies(canon_kmer, frequencies)
+            if model is not None:
+                exp_freq = bg.sequence_probability(canon_kmer, model)
+            else:
+                exp_freq = bg.expected_frequencies(canon_kmer, frequencies)
             row["exp_freq"] = exp_freq
 
         # Expected occurrences
