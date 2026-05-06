@@ -181,7 +181,6 @@ def main():
     input_file = args.input
     order = args.markov
 
-
     # Build Markov model
     matrix, total_all, context_counts = markov_bg.markov_model(dico_sequences, int(args.markov))
 
@@ -192,18 +191,22 @@ def main():
     # Current date
     today = str(datetime.date.today()).replace("-", "_")
 
+    # If no -o arguments
+    if output_file is None:
+        output_file = f"bg_model_m{order}_{today}.tsv"
+
     # If the output path is a folder
     if os.path.isdir(output_file):
         # Define output path
         output_path = os.path.join(output_file, f"bg_model_m{order}_{today}.tsv")
     else:
-        # Force the HTML extension
+        # Force the TSV extension
         if not output_file.endswith(".tsv"):
             output_file += ".tsv"
         # If it's a file
         output_path = output_file
 
-    # Write HTML file output
+    # Write TSV file output
     with open(output_path, "w") as tsv_file:
         ## Parameter
         # Command line
