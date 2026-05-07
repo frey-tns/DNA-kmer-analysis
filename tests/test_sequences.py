@@ -1,6 +1,16 @@
+#################
+#   Libraries   #
+#################
 import pytest
+
+############################
+#   Internal libraries     #
+############################
 from bioseq_kmers.sequences import read_fasta
 
+#######################
+#   Functional test   #
+#######################
 def test_read_fasta(tmp_path):
     fasta = tmp_path / "test.fasta"
     fasta.write_text(">seq1\nACGGNA\n"
@@ -14,3 +24,10 @@ def test_read_fasta(tmp_path):
                          "seq3": "AAAAAA"}
     assert total_length == 20
     assert seq_number == 3
+
+def test_read_fasta_invalid_character(tmp_path):
+    fasta = tmp_path / "bad.fasta"
+    fasta.write_text(">seq1\nACGRXA\nAGTCNT")
+
+    with pytest.raises(ValueError):
+        read_fasta(fasta)

@@ -16,8 +16,8 @@ def test_reverse_complement_basic():
     assert stat.reverse_complementary("ACTG") == "CAGT"
 
 def test_reverse_complement_invalid_character():
-    with pytest.raises(ValueError):
-        stat.reverse_complementary("ACTN")
+    with pytest.raises(KeyError):
+        stat.reverse_complementary("ACTX")
 
 def test_canonic_kmer_reverse_complement():
     assert stat.canonic_kmer("ATCG") == stat.canonic_kmer("CGAT")
