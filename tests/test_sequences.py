@@ -25,9 +25,10 @@ def test_read_fasta(tmp_path):
     assert total_length == 20
     assert seq_number == 3
 
+
 def test_read_fasta_invalid_character(tmp_path):
-    fasta = tmp_path / "bad.fasta"
-    fasta.write_text(">seq1\nACGRXA\nAGTCNT")
+    fasta_file = tmp_path / "bad.fasta"
+    fasta_file.write_text(">seq1\nACGRXA\nAGTCNT")
 
     with pytest.raises(ValueError):
-        read_fasta(fasta)
+        read_fasta(fasta_file)
