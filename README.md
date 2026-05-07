@@ -29,9 +29,10 @@ This software is a re-implementation of the `oligo-analysis` tool from [RSAT](ht
 | Tool | Purpose |
 |:----------------:|:------------------------------------------------|
 | `markov-from-seq` | estimate the parameters of a Markov model of order $m$ (in the form of a transition matrix) from a set of background sequences. By extension, a Bernoulli model can be computed by setting $m=0$. |
-| `markov-from-kmers` | derive a transition matrix of order $m$ from a table of k-mer occurrences, where $k=m+1$ |
+| `markov-from-kmers` | estimate a background Markov model of order $m$ from a table of k-mer occurrences, where $k=m+1$ (corresponds to RSAT [convert-background-model](https://rsat.eead.csic.es/plants/convert-background-model_form.cgi) |
 | `kmer-analysis` | compute k-mer occurrences in a set of input sequences, and derive over- or under-representation statistics given a user-specified background model |
-| `seq-proba` | computes the probability of input sequences based on a user-s|pecified background model |
+| `seq-proba` | compute sequence probabilities under a Bernoulli or a Markov model (corresponds to RSAT [seq-proba](https://rsat.eead.csic.es/plants/seq-proba_form.cgi)) |
+
 
 ### 🔄 Pipeline workflow
 
@@ -187,10 +188,4 @@ kmer-analysis -i data/yeast_MET_upstream.fasta  -k 6 -s both \
     -o results/yeast_MET_upstream_6nt_2str.tsv
 ```
 
-### 🧩 Related tools
 
-
-This program is part of a small toolkit for sequence analysis.
-
-- `markov-from-kmers` — estimate background Markov models from k-mer frequencies (from RSAT: [convert-background-model](https://rsat.eead.csic.es/plants/convert-background-model_form.cgi) )
-- `seq-proba` — compute sequence probabilities under Bernoulli or Markov models (from RSAT: [seq-proba](https://rsat.eead.csic.es/plants/seq-proba_form.cgi))
