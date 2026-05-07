@@ -79,9 +79,9 @@ Column contents :
 
 EXAMPLES
 
-    kmer-analysis -i data/yeast_MET_upstream.fasta  -k 6 -s both -o results/yeast_MET_upstream_6nt_2str.tsv
+    kmer-analysis -i data/seq/yeast_MET_upstream.fasta  -k 6 -s both -o results/yeast_MET_upstream_6nt_2str.tsv
 
-    kmer-analysis -i data/yeast_MET_upstream.fasta  -k 6 -s both \\
+    kmer-analysis -i data/seq/yeast_MET_upstream.fasta  -k 6 -s both \\
         --return occ,obs_freq,exp_occ,exp_freq \\
         -o results/yeast_MET_upstream_6nt_2str.tsv
 

@@ -53,6 +53,7 @@ from tqdm import tqdm
 # Outputs: - Number of sequence in the fasta file   #
 #          - Sum of length                          #
 #####################################################
+VALID_BASES = set("ACGTN")
 
 ## READ FASTA FILE
 def read_fasta(file_path):
@@ -90,11 +91,14 @@ def read_fasta(file_path):
                 # Adds FASTA ID as key in sequences dictionary
                 dico_sequences[current_id] = ""
 
-            else:
-                # If there is a key in sequences dictionary
-                if current_id != "":
-                    # Adds DNA sequence as value in sequences dictionary
-                    dico_sequences[current_id] += line.upper()
+            # If there is a key in sequences dictionary
+            elif current_id != "":
+                # Adds DNA sequence as value in sequences dictionary
+                dico_sequences[current_id] += line.upper()
+
+                invalid = set(dico_sequences[current_id]) - VALID_BASES
+                if invalid:
+                    raise ValueError(f"[ERROR] FASTA line contains invalid bases: {invalid}\n")
 
     ## STAT
 

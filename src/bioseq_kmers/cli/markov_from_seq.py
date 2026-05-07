@@ -52,7 +52,7 @@ The results are written to a tab-separated value file (extension .tsv).
 
 EXAMPLES
 
-    markov-from-seq -i data/yeast_MET_upstream.fasta -m 2 -o results/bg_model_m2.tsv
+    markov-from-seq -i data/seq/yeast_MET_upstream.fasta -m 2 -o results/bg_model_m2.tsv
 
 AUTHOR / CREDITS
     Anouk RISCH
