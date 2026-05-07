@@ -115,77 +115,17 @@ kmer-analysis -i data/seq/yeast_MET_upstream.fasta -k 6 -s both -o results/kmer-
 
 ```
 
-### ▶️ Usage 
+### ▶️ Usage and options
 
-SYNOPSIS USAGE
-
-- Display command synopsis:
+When called without any argument, each tool of the package displays a usage line with the supported arguments
 
 ```bash
 kmer-analysis
 ```
 
-- Print help message:
+A more detailed description of the tool and the options can be obtained with the option `--help`. 
 
 ```bash
 kmer-analysis --help
 ```
-
-- usage:
-
-```bash
-kmer-analysis [-h] --input FASTA_FILE --kmer KMER_LENGTH --output OUTPUT_FILE [options]
-```
-
-💡 Options
-
-    -h, --help
-        Display this help message and exit.
-
-    -i, --input FASTA_FILE
-        Input sequence file in fasta format.
-
-    -k, --kmer KMER_LENGTH
-        Length of k-mer sequences to analyze (integer ≥ 1).
-
-    -s, --strand {single,both}
-        Strand mode to compute counts for.
-        Handling of the strands for computing the occurrences and derived statistics.
-
-        single: count occurrences on the forward strand only
-        both: regroup k-mers by pairs of reverse complements
-            This actually makes the counts and derived statistics strand-insensitive
-
-    -o, --output OUTPUT_FILE
-        Output file in tab-separated values, with recommended extension .tsv
-
-    -r, --return FIELD[,FIELD...]
-        Comma-separated list of output fields.
-
-
-
-Available values for `--return`:
-
-- `occ`       : observed occurrences
-- `obs_freq`  : observed relative frequency
-- `exp_occ`   : expected occurrences
-- `exp_freq`  : expected frequency
-
-
-- proba     : statistical significance measures, including:  
-  - `p_value` : binomial P-value according to the specified background model
-  - `e_value` : E-value, i.e. P-value × T, where T is the number of k-mers tested
-  - `sig`     : significance score, defined as -log10(E-value)
-
-
-### Examples
-
-```bash
-kmer-analysis -i data/yeast_MET_upstream.fasta  -k 6 -s both -o results/yeast_MET_upstream_6nt_2str.tsv
-
-kmer-analysis -i data/yeast_MET_upstream.fasta  -k 6 -s both \
-    --return occ,obs_freq,exp_occ,exp_freq \
-    -o results/yeast_MET_upstream_6nt_2str.tsv
-```
-
 
