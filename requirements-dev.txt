@@ -1,2 +1,2 @@
 pdoc
-ptest
+pytest>=9.0.3
