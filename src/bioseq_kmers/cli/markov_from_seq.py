@@ -1,6 +1,5 @@
 """
-Compute a transition matrix of a Markov background model from biological sequences.
-
+Estimate the parameters of a Markov background model from biological sequences and print a transition matrix.
 
 SYNOPSIS USAGE
     Print usage line:
@@ -10,27 +9,27 @@ SYNOPSIS USAGE
         markov-from-seq --help
 
     Usage:
-        markov-from-seq [-h] --input FASTA_FILE \
-           --markov-order MARKOV_ORDER --output OUTPUT_FILE
+        markov-from-seq [-h] --input FASTA_FILE
+           --markov MARKOV_ORDER --output OUTPUT_FILE
 
 DESCRIPTION
 
-This program reads a set of input sequences (provided as a FASTA-formatted file),
-and builds a Markov model (transition matrix) with a specified order:
+This program reads a set of input sequences (provided as a FASTA-formatted file), and builds a Markov model
+(transition matrix) with a user-specified order. The order of the Markov model corresponds to the size of the
+prefix (oligonucleotide) to compute the conditional probabilities P(base|prefix).
 
-The prefixes are k-mers with a length equal to  order of the Markov model (m).
-For each prefix (context), the program computes the conditional probabilities of observing each possible nucleotide
- (A, C, G, T) after an occurrence of the prefix.
+The program estimates the probabilities of observing each possible residue (A, C, G, T)
+after an occurrence of each prefix.
 
 
 OPTIONS
     -h, --help
-        Show this help message and exit.
+        Display this help message and exit.
 
     -i, --input FASTA_FILE
         Input FASTA file.
 
-    -m, --markov-order MARKOV_ORDER
+    -m, --markov MARKOV_ORDER
         Markov model order.
 
     -o, --output OUTPUT_FILE
@@ -53,7 +52,7 @@ The results are written to a tab-separated value file (extension .tsv).
 
 EXAMPLES
 
-    markov-from-seq -i data/yeast_MET_upstream.fasta -m 2 -o results/bg_model_m2.tsv
+    markov-from-seq -i data/seq/yeast_MET_upstream.fasta -m 2 -o results/bg_model_m2.tsv
 
 AUTHOR / CREDITS
     Anouk RISCH
@@ -66,12 +65,8 @@ CONTACT / URL
     https://github.com/frey-tns
     https://github.com/frey-tns/DNA-kmer-analysis
 
-INSTALLATION
-
-    pip3 install -e .
-
-
 """
+from bioseq_kmers.utils import min_interger
 
 version = 0.1
 #################
@@ -171,6 +166,7 @@ def main():
 
     parser.add_argument("-m", "--markov",
                         required=True,
+                        type=min_interger(0),
                         help="Order of the markov model (1-7)")
 
     parser.add_argument("-o", "--output",
