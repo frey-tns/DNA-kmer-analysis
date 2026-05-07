@@ -10,7 +10,7 @@ SYNOPSIS USAGE
 
     usage:
         kmer-analysis [-h] --input FASTA_FILE
-         --kmer-length LENGTH_KMER --output OUTPUT_FILE
+         --kmer LENGTH_KMER --output OUTPUT_FILE
 
 DESCRIPTION
 
@@ -67,7 +67,7 @@ OPTIONS
 
 OUTPUT
 
-A tab-separated value file (extension  .tsv) with ne row per observed k-mer in the input sequences,
+A tab-separated value file (extension  .tsv) with one row per observed k-mer in the input sequences,
 and one column per k-mer statistics.
 
 Column contents :
@@ -289,7 +289,7 @@ def main():
                         help="Length of k-mer sequence (1-10)")
 
     parser.add_argument("-o", "--output",
-                        required=True,
+                        required=False,
                         help="Path to the output file directory")
 
     parser.add_argument("-s", "--strand",
@@ -314,6 +314,12 @@ def main():
     requested_fields = parse_return_option(args.return_fields)
 
     fields_compute = resolve_dependencies(requested_fields)
+
+    # If no -o arguments
+    if output_file is None:
+        # Extract name of the input file
+        input_name = os.path.splitext(os.path.basename(input_file))[0]
+        output_file = f"{input_name}_{kmer_length}nt_{strand_mode}_str.tsv"
 
 
     ## CONDITION : does the files already exist ?
@@ -427,12 +433,12 @@ def main():
         # Define output path
         output_path = os.path.join(output_file,f"summary_kmer_analysis_{today}.tsv")
     else:
-        # Force the HTML extension
+        # Force the TSV extension
         if not output_file.endswith(".tsv"):
             output_file += ".tsv"
         # If it's a file
         output_path = output_file
-    # Write HTML file output
+    # Write TSV file output
     with open(output_path, "w") as tsv_file:
 
         ## Parameter
