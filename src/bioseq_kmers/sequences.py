@@ -41,8 +41,8 @@ VERSION
 #   Libraries   #
 #################
 import os
+import gzip
 
-from requests.utils import dict_to_sequence
 # progress bar
 from tqdm import tqdm
 
@@ -80,7 +80,10 @@ def read_fasta(file_path):
     # Initialize FASTA ID as an empty string
     current_id = ""
 
-    with open(file_path, "r") as fasta_file:
+    # Choose opener depending on extension
+    gzip_opener = gzip.open if file_path.lower().endswith(".gz") else open
+
+    with gzip_opener(file_path, "r", encoding="utf-8") as fasta_file:
         line_count = 0 # line counter
         # For each line in FASTA file
         for line in tqdm(fasta_file, desc="Reading FASTA file"):
@@ -101,6 +104,7 @@ def read_fasta(file_path):
                 ##  Check that the new line only contains letters considered valid for a DNA sequence
                 sequence_to_add = line.upper().replace(" ", "")
                 invalid = set(sequence_to_add) - VALID_BASES
+
                 if invalid:
                     raise ValueError(f"[ERROR] line {line_count} contains invalid letters: {invalid}\n")
 
@@ -112,7 +116,6 @@ def read_fasta(file_path):
 
     # Number of sequence
     seq_number = len(dico_sequences)
-
     # Sum of lengths
     total_length = sum(len(seq) for seq in dico_sequences.values())
 
