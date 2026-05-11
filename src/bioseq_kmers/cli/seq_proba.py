@@ -86,6 +86,8 @@ import math
 # Coloring warning text
 from colorama import init, Fore
 
+import bioseq_kmers.background_models as bg
+
 ############################
 #   Internal libraries     #
 ############################
@@ -210,87 +212,6 @@ def load_markov_matrix(path):
             "prefixes_prob": dict_prefixes_prob,
             "order": order}
 
-######################################
-#   Function: Sequence probability   #
-######################################
-def sequence_probability(sequence, model):
-    """
-    Compute sequence probability of a biological sequence given a Markov background model.
-
-    The probability is computed using an order k Markov chain, where k is defined by the model order.
-    For order 0, bases are assumed independent. For higher orders, the probability is computed as:
-
-        P(s) = P(prefix) × Π P(base_i | context_i)
-
-    where context_i is the kmer preceding each base.
-
-    Args:
-        sequence (str): biological sequence (automatically converted to uppercase).
-        model (dict): Markov model containing:
-            - "matrix" (dict): Transition probabilities such that
-            matrix[context][base] = P(base_i | context_i)
-            - "prefixes_prob" (dict): Probability of each prefix P(prefix)
-            -"order" (int): Markov order (length of prefix(kmer))
-    Returns:
-        float: Probability of the sequence under the Markov model.
-        Returns 0.0 if the sequence is too short, if a required prefix
-        is missing, or if an unknow context/base is encountered.
-
-    Notes:
-        - If order == 0, bases are assumed independent (Bernoulli).
-        - All sequences are normalized to uppercase internally
-
-    """
-
-    # Sequence normalization
-    sequence = sequence.upper()
-
-    # Extract transition
-    matrix = model["matrix"]
-    # Extract probabilities
-    prefixes_prob = model["prefixes_prob"]
-    # Extract kmer length (=order)
-    order = model["order"]
-
-    ## Special case: order 0
-    if order == 0:
-        prob = 1.0
-        for base in sequence:
-            # Independently multiplies each base
-            prob *= matrix[""].get(base.upper(), 0.0)
-        return prob
-
-    # If the sequence is too short
-    if len(sequence) < order:
-        return 0.0
-
-    # Extract first prefix
-    prefix = sequence[:order]
-
-    # If no prefix
-    if prefix not in prefixes_prob:
-        return 0.0
-
-    # Prefix initialize
-    prob = prefixes_prob.get(prefix, None)
-    if prob is None:
-        return 0.0
-
-    # Navigate the sequence starting from order
-    for i_index in range(order, len(sequence)):
-        # Extract prefix
-        context = sequence[i_index - order:i_index]
-        # Next base
-        base = sequence[i_index]
-
-        # If no prefix
-        if context not in matrix:
-            return 0.0
-
-        # Markov multiplication P(base∣context)
-        prob *= matrix[context].get(base, 0.0)
-
-    return prob
 
 #################
 #   Main code   #
@@ -315,9 +236,9 @@ def main():
                         required=True,
                         help="input FASTA file")
 
-    parser.add_argument("-m", "--matrix",
+    parser.add_argument("-m", "--model",
                         required=True,
-                        help="Markov matrix TSV file")
+                        help="Markov model, formated as a transition matrix in a TSV file")
 
     parser.add_argument("-o", "--output",
                         required=False,
@@ -329,7 +250,7 @@ def main():
     ### Define variable to use the value in the script
     # Load sequence
     input_file = args.input
-    model_file = args.matrix
+    model_file = args.model
     output_file = args.output
 
     if output_file is None:
@@ -377,17 +298,11 @@ def main():
         tsv_file.write("#id\tlength\tproba_b\tlog_proba\n")
 
         for seq_id, sequence in sequences.items():
-            p = sequence_probability(sequence, model)
             length_seq = len(sequence)
-
-            # Log probabilities
-            if p == 0:
-                log_p = float("-inf")
-            else:
-                log_p = math.log10(p)
-
+            p, log_p = bg.sequence_probability(sequence, model)
+        #    tsv_file.write(f"{seq_id}\t{length_seq}\t{p:.6e}\thello\n")
+        #            p, log_p = sequence_probability(sequence, model)
             tsv_file.write(f"{seq_id}\t{length_seq}\t{p:.6e}\t{log_p:.2f}\n")
-
 
         # End time
         end_time = time.perf_counter()
