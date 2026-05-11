@@ -227,6 +227,9 @@ def sequence_probability(sequence, model):
     if len(sequence) < order:
         return 0.0, float("-inf")
 
+    # If it's an empty sequence, the probability is null
+    if len(sequence) == 0:
+        return 0.0, float("-inf")
 
     ## Special case: Bernoulli model (Markov order==0)
     if order == 0:
