@@ -100,118 +100,6 @@ import bioseq_kmers.utils as utils
 ## FUNCTIONS
 ################################################################
 
-###################################
-#   Function: load markov model   #
-###################################
-def load_markov_matrix(path):
-    """
-    Read a markov transition matrix from a tabular RSAT-like file.
-
-    The function reads a Markov background model produced by tolls such as `markov-from-seq` or
-    `markov-from-kmers`. It parses a tab separated file containing prefix, transition probabilities
-    ofr each nucleotide, and prefix probabilities.
-
-    The prefix columns can be named either `pr\\su` or 'pr\\suf`.
-    The Markov order is inferred from the length of the observed prefixes.
-
-    Args:
-        path (str): Path to te Markov transition matrix file (.tsv).
-    Returns:
-        dict: A dictionary containing:
-        - dict_matrix (dict): Transition probabilities such taht:
-        matrix[prefix][base] = P(base | prefix)
-        - dict_prefix_prob (dict): Probability of each prefix P(prefix)
-        - dict_order (int): Markov order (length of prefix)
-    Raises:
-        ValueError: If the file is malformed, missing required columns,
-        or contains no valid matrix data.
-    Notes:
-        - Prefix are converted to uppercase internally
-        - '.' is interpreted as an empty prefix (order 0 mode)
-    """
-    # Dict transition probabilities
-    dict_matrix = {}
-    # Dict where key is base and value is the initial probability per base
-    dict_prefixes_prob = {}
-    # column index
-    col_index = None
-
-    # Read file
-    with open(path, 'r') as f:
-        for line in f:
-            # Remove line breaks and spaces
-            line = line.strip()
-
-            # Skip empty lines and RSAT comments
-            if not line or line.startswith(";"):
-                continue
-
-            # Read header
-            if line.startswith("#"):
-                header = line.lstrip("#").strip().split()
-                col_index = {name: i for i, name in enumerate(header)}
-                # The header line should not be treated as a data line.
-                continue
-
-            # If header doesnt exist
-            if col_index is None:
-                # Error message
-                raise ValueError("Missing header line starting with '#'.")
-
-            # Columns are separated by tabs
-            parts = line.split("\t")
-            # If TSV malformed
-            if len(parts) == 1:
-                # Automatically separates on any space
-                parts = line.split()
-
-            # Ignore the comment lines
-            if parts[0].startswith(";"):
-                continue
-
-            # Prefix column selection.
-            if "pr\\su" in col_index:
-                prefix_col = "pr\\su"
-            elif "pr\\suf" in col_index:
-                prefix_col = "pr\\suf"
-            else:
-                # Error message if prefix is missing
-                raise ValueError("Missing prefix column ('pr\\suf' or 'pr\\su').")
-
-            # Required columns
-            for col in ["a", "c", "g", "t", "P_prefix"]:
-                if col not in col_index:
-                    # Error message if not required columns
-                    raise ValueError(f"Missing column '{col}'.")
-
-            # Read prefix
-            prefix = parts[col_index[prefix_col]]
-            if prefix == ".":
-                prefix = ""
-            else:
-                prefix = prefix.upper()
-
-            # Reading transition probabilities
-            dict_matrix[prefix] = {"A": float(parts[col_index["a"]]),
-                              "C": float(parts[col_index["c"]]),
-                              "G": float(parts[col_index["g"]]),
-                              "T": float(parts[col_index["t"]])}
-
-            # Reading prefix probabilities
-            dict_prefixes_prob[prefix] = float(parts[col_index["P_prefix"]])
-
-    if not dict_matrix:
-        raise ValueError("No markov transition matrix data found.")
-
-    # Extract first prefix
-    first_prefix = next(iter(dict_matrix))
-    # Deducing the order of the model
-    order = len(first_prefix)
-
-    return {"matrix": dict_matrix,
-            "prefixes_prob": dict_prefixes_prob,
-            "order": order}
-
 
 #################
 #   Main code   #
@@ -264,7 +152,7 @@ def main():
     sequences, _, _ = seq.read_fasta(input_file)
 
     # Markov model
-    model = load_markov_matrix(model_file)
+    model = bg.load_markov_matrix(model_file)
 
     #####################
     #   Output file     #
@@ -300,8 +188,6 @@ def main():
         for seq_id, sequence in sequences.items():
             length_seq = len(sequence)
             p, log_p = bg.sequence_probability(sequence, model)
-        #    tsv_file.write(f"{seq_id}\t{length_seq}\t{p:.6e}\thello\n")
-        #            p, log_p = sequence_probability(sequence, model)
             tsv_file.write(f"{seq_id}\t{length_seq}\t{p:.6e}\t{log_p:.2f}\n")
 
         # End time
