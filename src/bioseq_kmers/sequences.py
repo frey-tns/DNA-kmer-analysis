@@ -83,7 +83,7 @@ def read_fasta(file_path):
     # Choose opener depending on extension
     gzip_opener = gzip.open if file_path.lower().endswith(".gz") else open
 
-    with gzip_opener(file_path, "r", encoding="utf-8") as fasta_file:
+    with gzip_opener(file_path, "rt", encoding="utf-8") as fasta_file:
         line_count = 0 # line counter
         # For each line in FASTA file
         for line in tqdm(fasta_file, desc="Reading FASTA file"):
