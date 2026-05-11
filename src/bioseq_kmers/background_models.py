@@ -59,8 +59,10 @@ VERSION
     1.2, 2026-04-24
 """
 
-import bioseq_kmers.kmer_stats as kmers
+import sys
+import math
 from collections import defaultdict
+import bioseq_kmers.kmer_stats as kmers
 
 
 #########################################
@@ -196,9 +198,11 @@ def sequence_probability(sequence, model):
             - "prefixes_prob" (dict): Probability of each prefix P(prefix)
             -"order" (int): Markov order (length of prefix(kmer))
     Returns:
-        float: Probability of the sequence under the Markov model.
-        Returns 0.0 if the sequence is too short, if a required prefix
-        is missing, or if an unknow context/base is encountered.
+        float proba: Probability of the sequence under the Markov model.
+        float log_proba: Log probability of the sequence under the Markov model.
+
+    Raises:
+        ValueError: if a prefix is missing from the background model.
 
     Notes:
         - If order == 0, bases are assumed independent (Bernoulli).
@@ -216,42 +220,69 @@ def sequence_probability(sequence, model):
     # Extract kmer length (=order)
     order = model["order"]
 
-    ## Special case: order 0
+    # For computational precision and efficiency, we first compute log_proba = log10(p) and then derive p = 10^log_proba
+
+
+    # If the sequence is too short, the probability is null
+    if len(sequence) < order:
+        return 0.0, float("-inf")
+
+
+    ## Special case: Bernoulli model (Markov order==0)
     if order == 0:
-        prob = 1.0
+        log_proba = 0
         for base in sequence:
             # Independently multiplies each base
-            prob *= matrix[""].get(base.upper(), 0.0)
-        return prob
+            residue_proba = matrix[""].get(base.upper(), 0.0)
+            if residue_proba == 0:
+                return 0.0, float("-inf")
+            log_proba += math.log10(residue_proba)
+        return 10**log_proba, log_proba
 
-    # If the sequence is too short
-    if len(sequence) < order:
-        return 0.0
 
     # Extract first prefix
-    prefix = sequence[:order]
+    initial_prefix = sequence[:order]
 
-    # If no prefix
-    if prefix not in prefixes_prob:
-        return 0.0
+    # Check that the initial sequence prefix is present in the Markov model
+    if initial_prefix not in prefixes_prob:
+        raise ValueError(
+            f"Initial sequence prefix '{initial_prefix}' is absent from the transition matrix."
+        )
 
-    # Prefix initialize
-    prob = prefixes_prob.get(prefix, None)
-    if prob is None:
-        return 0.0
+    # Initialize log_proba
+    prefix_prob = prefixes_prob[initial_prefix]
+    if prefix_prob == 0:
+        return 0.0, float("-inf")
+    log_proba = math.log10(prefix_prob)
 
-    # Navigate the sequence starting from order
+    # Iterate over the residues following the prefix, and aggregate the transition probabilities
+    # JvH: to check: are the start and en indices correct ?
     for i_index in range(order, len(sequence)):
         # Extract prefix
-        context = sequence[i_index - order:i_index]
+        prefix_start = i_index - order
+        prefix_end = i_index
+        prefix = sequence[prefix_start:prefix_end]
+
         # Next base
         base = sequence[i_index]
 
+        print(
+            f"i={i_index} ",
+            f"prefix[{prefix_start}:{prefix_end}]='{prefix}' ",
+            f"base[{i_index}]='{base}'",
+            file=sys.stderr
+        )
+
         # If no prefix
-        if context not in matrix:
-            return 0.0
+        if prefix not in matrix:
+            raise ValueError(
+                f"Prefix '{prefix}' absent from the transition matrix but found at index {i_index} of sequence '{sequence}'."
+            )
 
         # Markov multiplication P(base∣context)
-        prob *= matrix[context].get(base, 0.0)
+        residue_proba = matrix[prefix].get(base, 0.0)
+        if residue_proba == 0:
+            return 0.0, float("-inf")
+        log_proba += math.log10(residue_proba)
 
-    return prob
+    return 10**log_proba, log_proba
