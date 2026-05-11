@@ -10,7 +10,7 @@ SYNOPSIS USAGE
 
     Usage:
         markov-from-seq [-h] --input FASTA_FILE
-           --markov-order MARKOV_ORDER --output OUTPUT_FILE
+           --markov MARKOV_ORDER --output OUTPUT_FILE
 
 DESCRIPTION
 
@@ -29,7 +29,7 @@ OPTIONS
     -i, --input FASTA_FILE
         Input FASTA file.
 
-    -m, --markov-order MARKOV_ORDER
+    -m, --markov MARKOV_ORDER
         Markov model order.
 
     -o, --output OUTPUT_FILE
@@ -52,7 +52,7 @@ The results are written to a tab-separated value file (extension .tsv).
 
 EXAMPLES
 
-    markov-from-seq -i data/yeast_MET_upstream.fasta -m 2 -o results/bg_model_m2.tsv
+    markov-from-seq -i data/seq/yeast_MET_upstream.fasta -m 2 -o results/bg_model_m2.tsv
 
 AUTHOR / CREDITS
     Anouk RISCH
@@ -66,6 +66,7 @@ CONTACT / URL
     https://github.com/frey-tns/DNA-kmer-analysis
 
 """
+from bioseq_kmers.utils import min_interger
 
 version = 0.1
 #################
@@ -165,6 +166,7 @@ def main():
 
     parser.add_argument("-m", "--markov",
                         required=True,
+                        type=min_interger(0),
                         help="Order of the markov model (1-7)")
 
     parser.add_argument("-o", "--output",

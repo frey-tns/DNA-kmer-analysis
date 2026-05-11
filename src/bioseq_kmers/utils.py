@@ -1,6 +1,10 @@
+import argparse
 import os
 # For shell command string manipulation
 import shlex
+
+from colorama import reinit
+
 
 #################################################
 #   Function: Defined the format command line   #
@@ -45,3 +49,34 @@ def format_command_line(argv):
             list_cleaned_command.append(shlex.quote(arg))
 
     return " ".join(list_cleaned_command)
+
+########################################
+#   Function: positive integer value   #
+########################################
+def min_interger(min_value):
+    """
+    Create a validator for integers greater than or equal to `min_value`.
+
+    Args:
+        value(str): Command line argument.
+    Returns:
+        int: Validated positive integer.
+    Raises:
+        argparse.ArgumentTypeError: If `value` is not an integer greater than or equal to min value.
+    """
+    def validator(value):
+        # Intercept a potential error
+        try:
+            ## Verify that k length is an integer
+            # Convert the argument to the entire file
+            value= (int(value))
+        except ValueError:
+            # If invalid value → Intentionally cause an error suitable for argparse
+            raise argparse.ArgumentTypeError(f"Value {value!r} is not an integer.")
+
+        if value < min_value:
+            raise argparse.ArgumentTypeError(f"Value {value!r} must be >= {min_value}.")
+
+        return value
+
+    return validator

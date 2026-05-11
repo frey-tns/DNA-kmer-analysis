@@ -79,7 +79,8 @@ from collections import Counter
 _DICT_COMPLEMENT = {"A": "T",
                     "T": "A",
                     "C": "G",
-                    "G": "C"}
+                    "G": "C",
+                    "N": "N"}
 
 ####################################################
 #   Function: complementary reverse of the k-mer   #
