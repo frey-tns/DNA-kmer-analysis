@@ -382,12 +382,6 @@ def sequence_probability(sequence, model):
         # Next base
         base = sequence[i_index]
 
-        print(
-            f"i={i_index} ",
-            f"prefix[{prefix_start}:{prefix_end}]='{prefix}' ",
-            f"base[{i_index}]='{base}'",
-            file=sys.stderr
-        )
 
         # If no prefix
         if prefix not in matrix:
