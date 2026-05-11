@@ -21,3 +21,4 @@ dependencies = [
 kmer-analysis = "bioseq_kmers.cli.kmer_analysis:main"
 markov-from-seq  = "bioseq_kmers.cli.markov_from_seq:main"
 markov-from-kmers = "bioseq_kmers.cli.markov_from_kmers:main"
+seq-proba = "bioseq_kmers.cli.seq_proba:main"
