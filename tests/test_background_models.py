@@ -165,20 +165,23 @@ def test_sequence_probability_prefix_only():
              "order": 2}
 
 
-    proba, log_proba = sequence_probability({"seq1":"AT"}, model)
+    sequences = {"seq1":"AT"}
+    dict_proba_seq, dict_log_proba = sequence_probability(sequences, model)
 
-    assert proba == pytest.approx(0.03)
-    assert log_proba == math.log10(0.03)
+
+    assert dict_proba_seq["seq1"] == pytest.approx(0.03)
+    assert dict_log_proba["seq1"] == math.log10(0.03)
 
 def tests_sequence_probability_seq_to_shorter_than_order():
     model = {"matrix": {},
              "prefixes_prob": {},
              "order": 3}
 
-    proba, log_proba = sequence_probability("AT", model)
+    sequences = {"seq1": "AT"}
+    dict_proba_seq, dict_log_proba = sequence_probability(sequences, model)
 
-    assert proba == 0.0
-    assert log_proba == float("-inf")
+    assert dict_proba_seq["seq1"] == 0
+    assert dict_log_proba["seq1"] == float("-inf")
 
 def test_sequence_probability_multiseq():
     model = {"matrix": {"AA": {"A": 0.25, "C": 0.15, "G": 0.4, "T": 0.2},
@@ -188,20 +191,21 @@ def test_sequence_probability_multiseq():
                         "GC": {"C": 0.5},
                         "CC": {"G": 0.2}},
              "prefixes_prob": {"AA": 0.02, "AT": 0.03, "CA": 0.02},
-#             "prefixes_prob": {"AT": 0.3},
              "order": 2}
 
     sequences = {"seq1": "AATAAA", "seq2": "ATGCC"}
 
 
-    proba, log_proba = sequence_probability(sequences, model)
+    dict_proba_seq, dict_log_proba = sequence_probability(sequences, model)
 
     proba1 = 0.02 * 0.2 * 0.2 * 0.1 * 0.25
     proba2 = 0.03 * 0.4 * 0.2 * 0.5
 
-    expected = {
-        "seq1": {"probability": proba1, "log_proba": math.log10(proba1)},
-        "seq2": {"probability": proba2, "log_proba": math.log10(proba2)}}
+    log1 = math.log10(proba1)
+    log2 = math.log10(proba2)
 
-    assert proba == pytest.approx(expected)
-    assert log_proba == pytest.approx(math.log10(expected))
+    assert dict_proba_seq["seq1"] == pytest.approx(proba1)
+    assert dict_proba_seq["seq2"] == pytest.approx(proba2)
+
+    assert dict_log_proba["seq1"] == pytest.approx(log1)
+    assert dict_log_proba["seq2"] == pytest.approx(log2)
