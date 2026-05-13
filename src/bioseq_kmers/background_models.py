@@ -273,17 +273,19 @@ def load_markov_matrix(path):
             prefix = parts[col_index[prefix_col]]
             if prefix == ".":
                 prefix = ""
+                dict_prefixes_prob[prefix] = 1
+
             else:
                 prefix = prefix.upper()
+
+                # Reading prefix probabilities
+                dict_prefixes_prob[prefix] = float(parts[col_index["P_prefix"]])
 
             # Reading transition probabilities
             dict_matrix[prefix] = {"A": float(parts[col_index["a"]]),
                               "C": float(parts[col_index["c"]]),
                               "G": float(parts[col_index["g"]]),
                               "T": float(parts[col_index["t"]])}
-
-            # Reading prefix probabilities
-            dict_prefixes_prob[prefix] = float(parts[col_index["P_prefix"]])
 
     if not dict_matrix:
         raise ValueError("No markov transition matrix data found.")
@@ -333,11 +335,13 @@ def sequence_probability(sequences, model):
         - Probability is computed in log10 space for numerical stability.
     """
 
-    # Extract transition
+    # Extract transition matrix
     matrix = model["matrix"]
-    # Extract probabilities
+
+    # Extract prior probabilities of the prefixes
     prefixes_prob = model["prefixes_prob"]
-    # Extract kmer length (=order)
+
+    # Extract the order of the model
     order = model["order"]
 
     dict_proba_seq = {}
@@ -408,8 +412,7 @@ def sequence_probability(sequences, model):
                                        "log_proba": float("-inf")}
             log_proba += math.log10(residue_proba)
 
-        scientific_prob = utils.engineer_mode(log_proba)
-        dict_proba_seq[seq_id] = {"probability":scientific_prob,
-                                "log_proba":log_proba}
+#        scientific_prob = utils.engineer_mode(log_proba)
+        dict_proba_seq[seq_id] = {"probability":10**log_proba, "log_proba":log_proba}
 
     return dict_proba_seq
