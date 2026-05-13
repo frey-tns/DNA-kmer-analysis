@@ -185,16 +185,13 @@ def main():
         # Header
         tsv_file.write("#id\tlength\tproba_b\tlog_proba\n")
 
-        # for seq_id, sequence in sequences.items():
-        #     length_seq = len(sequence)
-        #     p, log_p = bg.sequence_probability(sequences, model)
-        #
-        dict_proba_seq = bg.sequence_probability(sequences, model)
 
-        for seq_id, value in dict_proba_seq.items():
+        dict_proba_seq, dict_log_proba = bg.sequence_probability(sequences, model)
+
+        for seq_id in dict_proba_seq.keys():
             sequence = sequences[seq_id]
             length_seq = len(sequence)
-            log_p = value["log_proba"]
+            log_p = dict_log_proba[seq_id]
             p = utils.engineer_mode(log_p) # enables printing values smaller than 1e-324
 
             tsv_file.write(f"{seq_id}\t{length_seq}\t{p}\t{log_p:.2f}\n")

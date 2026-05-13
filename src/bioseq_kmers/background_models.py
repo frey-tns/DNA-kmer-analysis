@@ -345,6 +345,7 @@ def sequence_probability(sequences, model):
     order = model["order"]
 
     dict_proba_seq = {}
+    dict_log_proba = {}
 
     for seq_id, sequence in tqdm(sequences.items()):
 
@@ -356,21 +357,26 @@ def sequence_probability(sequences, model):
         # If the sequence is too short or an empty sequence, the probability is null
         if len(sequence) < order or len(sequence) == 0:
 
-            dict_proba_seq[seq_id] = {"probability":"0.0",
-                                   "log_proba":float("-inf")}
+            dict_proba_seq[seq_id] = 0.0
+            dict_log_proba[seq_id] = float("-inf")
 
         ## Special case: Bernoulli model (Markov order==0)
         if order == 0:
             log_proba = 0
+
             for base in sequence:
                 # Independently multiplies each base
                 residue_proba = matrix[""].get(base.upper(), 0.0)
+
                 if residue_proba == 0:
-                    dict_proba_seq[seq_id] = {"probability": "0.0",
-                                              "log_proba": float("-inf")}
+
+                    dict_proba_seq[seq_id] = 0.0
+                    dict_log_proba[seq_id] = float("-inf")
+
                 log_proba += math.log10(residue_proba)
-            dict_proba_seq[seq_id] = {"probability":10**log_proba ,
-                                      "log_proba": log_proba}
+
+            dict_proba_seq[seq_id] = 10**log_proba
+            dict_log_proba[seq_id] = float("-inf")
 
         # Extract first prefix
         initial_prefix = sequence[:order]
@@ -384,8 +390,8 @@ def sequence_probability(sequences, model):
         # Initialize log_proba
         prefix_prob = prefixes_prob[initial_prefix]
         if prefix_prob == 0:
-            dict_proba_seq[seq_id] = {"probability": "0.0",
-                                   "log_proba": float("-inf")}
+            dict_proba_seq[seq_id] = 0.0
+            dict_log_proba[seq_id] = float("-inf")
         log_proba = math.log10(prefix_prob)
 
         # Iterate over the residues following the prefix, and aggregate the transition probabilities
@@ -407,12 +413,16 @@ def sequence_probability(sequences, model):
 
             # Markov multiplication P(base∣context)
             residue_proba = matrix[prefix].get(base, 0.0)
+
             if residue_proba == 0:
-                dict_proba_seq[seq_id] = {"probability": "0.0",
-                                       "log_proba": float("-inf")}
+                dict_proba_seq[seq_id] = 0.0
+                dict_log_proba[seq_id] = float("-inf")
+                
             log_proba += math.log10(residue_proba)
 
 #        scientific_prob = utils.engineer_mode(log_proba)
-        dict_proba_seq[seq_id] = {"probability":10**log_proba, "log_proba":log_proba}
 
-    return dict_proba_seq
+        dict_proba_seq[seq_id] = 10 ** log_proba
+        dict_log_proba[seq_id] = log_proba
+
+    return dict_proba_seq, dict_log_proba
