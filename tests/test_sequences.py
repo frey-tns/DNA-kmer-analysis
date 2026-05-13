@@ -76,3 +76,18 @@ def test_read_fasta_invalid_character(tmp_path):
 
     with pytest.raises(ValueError):
         read_fasta(fasta_file)
+
+def test_read_fasta_with_empty_seq(tmp_path):
+    """Check output for missing sequence in FASTA file"""
+    fasta = tmp_path / "test.fasta"
+    fasta.write_text(">seq1\nACGGNA\n"
+                     ">seq2\n\n"
+                     ">seq3\nAAAAAA\n")
+
+    sequences, total_length, seq_number = read_fasta(fasta)
+
+    assert sequences == {"seq1": "ACGGNA",
+                         "seq2": "",
+                         "seq3": "AAAAAA"}
+    assert total_length == 12
+    assert seq_number == 3
