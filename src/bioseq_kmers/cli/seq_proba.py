@@ -58,7 +58,9 @@ The results are written to a tab-separated value file (extension .tsv).
 
 EXAMPLES
 
-    seq-proba -i data/yeast_MET_upstream.fasta  -m data/markov_transitions_m2_2026_05_04.tsv -o ../result
+    seq-proba -i data/seq/yeast_MET_upstream.fasta \
+        -m data/bg-models/yeast_all-upstream-noorf_Markov_m2.tsv \
+        -o results/yeast_MET_upstream_proba.tsv
 
 AUTHOR / CREDITS
     Anouk RISCH
@@ -192,8 +194,8 @@ def main():
         for seq_id, value in dict_proba_seq.items():
             sequence = sequences[seq_id]
             length_seq = len(sequence)
-            p = value["probability"]
             log_p = value["log_proba"]
+            p = utils.engineer_mode(log_p) # enables printing values smaller than 1e-324
 
             tsv_file.write(f"{seq_id}\t{length_seq}\t{p}\t{log_p:.2f}\n")
 
