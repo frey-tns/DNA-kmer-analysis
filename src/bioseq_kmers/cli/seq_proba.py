@@ -48,7 +48,7 @@ EXAMPLES
 
     seq-proba -i data/seq/yeast_MET_upstream.fasta \\
         -m data/bg-models/yeast_all-upstream-noorf_Markov_m2.tsv \\
-        -o results/yeast_MET_upstream_proba.tsv
+        -o results/yeast_MET_upstream_proba_Markov_m2.tsv
 
 AUTHOR / CREDITS
     Anouk RISCH
