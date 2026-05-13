@@ -65,15 +65,17 @@ def test_sequence_probability_order_0():
                              "G": 0.35,
                              "T": 0.30}
                              },
-             "prefixes_prob": {""},
+             "prefixes_prob": {"": 1},
              "order": 0}
 
-    proba, log_proba = sequence_probability("ATGCCG", model)
+    sequences = {"seq1": "ATGCCG"}
+    dict_proba_seq, dict_log_proba = sequence_probability(sequences, model)
 
-    expected = 0.20 * 0.30 * 0.35 * 0.15 * 0.15 * 0.35
+    exp_proba = 0.20 * 0.30 * 0.35 * 0.15 * 0.15 * 0.35
 
-    assert proba == pytest.approx(expected)
-    assert log_proba == pytest.approx(math.log10(expected))
+
+    assert dict_proba_seq["seq1"] == pytest.approx(exp_proba)
+    assert dict_log_proba["seq1"] == math.log10(exp_proba)
 
 def test_sequence_probability_order_1():
     model = {"matrix": {"A": {"A": 0.2, "C": 0.1, "G": 0.4, "T": 0.4},
@@ -83,12 +85,13 @@ def test_sequence_probability_order_1():
              "prefixes_prob": {"A": 0.5, "C": 0.2, "G": 0.1, "T": 0.2},
              "order": 1}
 
-    proba, log_proba = sequence_probability("ATGCCG", model)
+    sequences = {"seq1": "ATGCCG"}
+    dict_proba_seq, dict_log_proba = sequence_probability(sequences, model)
 
-    expected = 0.5 * 0.4 * 0.2 * 0.2 * 0.6 * 0.2
+    exp_proba = 0.5 * 0.4 * 0.2 * 0.2 * 0.6 * 0.2
 
-    assert proba == pytest.approx(expected)
-    assert log_proba == pytest.approx(math.log10(expected))
+    assert dict_proba_seq["seq1"] == pytest.approx(exp_proba)
+    assert dict_log_proba["seq1"] == math.log10(exp_proba)
 
 def test_sequence_probability_order_2():
     model = {"matrix": {"AT": {"A": 0.2, "C": 0.2, "G": 0.4, "T": 0.2},
@@ -96,15 +99,16 @@ def test_sequence_probability_order_2():
                         "GC": {"C": 0.5},
                         "CC": {"G": 0.2}},
              "prefixes_prob": {"AA": 0.02, "AT": 0.03, "CA": 0.02},
-#             "prefixes_prob": {"AT": 0.3},
              "order": 2}
 
-    proba, log_proba = sequence_probability("ATGCCG", model)
+    sequences = {"seq1": "ATGCCG"}
+    dict_proba_seq, dict_log_proba = sequence_probability(sequences, model)
 
-    expected = 0.03 * 0.4 * 0.2 * 0.5 * 0.2
+    exp_proba = 0.03 * 0.4 * 0.2 * 0.5 * 0.2
 
-    assert proba == pytest.approx(expected)
-    assert log_proba == pytest.approx(math.log10(expected))
+    assert dict_proba_seq["seq1"] == pytest.approx(exp_proba)
+    assert dict_log_proba["seq1"] == math.log10(exp_proba)
+
 
 def tests_sequence_probability_empty_seq_order_0():
     model = {"matrix": {"": {"A": 0.20,
@@ -112,13 +116,15 @@ def tests_sequence_probability_empty_seq_order_0():
                              "G": 0.35,
                              "T": 0.30}
                              },
-             "prefixes_prob": {""},
+             "prefixes_prob": {"": 1},
              "order": 0}
 
-    proba, log_proba = sequence_probability("", model)
+    sequences = {"seq1": ""}
+    dict_proba_seq, dict_log_proba = sequence_probability(sequences, model)
 
-    assert proba == 0
-    assert log_proba == float("-inf")
+
+    assert dict_proba_seq["seq1"] == 0
+    assert dict_log_proba["seq1"] == float("-inf")
 
 def tests_sequence_probability_empty_seq_order_1():
     model = {"matrix": {"A": {"A": 0.2, "C": 0.1, "G": 0.4, "T": 0.4},
@@ -128,10 +134,12 @@ def tests_sequence_probability_empty_seq_order_1():
              "prefixes_prob": {"A": 0.5, "C": 0.2, "G": 0.1, "T": 0.2},
              "order": 1}
 
-    proba, log_proba = sequence_probability("", model)
+    sequences = {"seq1": ""}
+    dict_proba_seq, dict_log_proba = sequence_probability(sequences, model)
 
-    assert proba == 0
-    assert log_proba == float("-inf")
+    assert dict_proba_seq["seq1"] == 0
+    assert dict_log_proba["seq1"] == float("-inf")
+
 
 def tests_sequence_probability_empty_seq_order_2():
     model = {"matrix": {"AT": {"A": 0.2, "C": 0.2, "G": 0.4, "T": 0.2},
@@ -141,11 +149,12 @@ def tests_sequence_probability_empty_seq_order_2():
              "prefixes_prob": {"AA": 0.02, "AT": 0.03, "CA": 0.02},
              "order": 2}
 
+    sequences = {"seq1": ""}
+    dict_proba_seq, dict_log_proba = sequence_probability(sequences, model)
 
-    proba, log_proba = sequence_probability("", model)
+    assert dict_proba_seq["seq1"] == 0
+    assert dict_log_proba["seq1"] == float("-inf")
 
-    assert proba == 0
-    assert log_proba == float("-inf")
 
 def test_sequence_probability_prefix_only():
     model = {"matrix": {"AT": {"A": 0.2, "C": 0.2, "G": 0.4, "T": 0.2},
@@ -156,17 +165,47 @@ def test_sequence_probability_prefix_only():
              "order": 2}
 
 
-    proba, log_proba = sequence_probability("AT", model)
+    sequences = {"seq1":"AT"}
+    dict_proba_seq, dict_log_proba = sequence_probability(sequences, model)
 
-    assert proba == pytest.approx(0.03)
-    assert log_proba == math.log10(0.03)
+
+    assert dict_proba_seq["seq1"] == pytest.approx(0.03)
+    assert dict_log_proba["seq1"] == math.log10(0.03)
 
 def tests_sequence_probability_seq_to_shorter_than_order():
     model = {"matrix": {},
              "prefixes_prob": {},
              "order": 3}
 
-    proba, log_proba = sequence_probability("AT", model)
+    sequences = {"seq1": "AT"}
+    dict_proba_seq, dict_log_proba = sequence_probability(sequences, model)
 
-    assert proba == 0.0
-    assert log_proba == float("-inf")
+    assert dict_proba_seq["seq1"] == 0
+    assert dict_log_proba["seq1"] == float("-inf")
+
+def test_sequence_probability_multiseq():
+    model = {"matrix": {"AA": {"A": 0.25, "C": 0.15, "G": 0.4, "T": 0.2},
+                        "AT": {"A": 0.2, "C": 0.2, "G": 0.4, "T": 0.2},
+                        "TA": {"A": 0.1, "C": 0.3, "G": 0.3, "T": 0.3},
+                        "TG": {"A": 0.4, "C": 0.2, "G": 0.2, "T": 0.2},
+                        "GC": {"C": 0.5},
+                        "CC": {"G": 0.2}},
+             "prefixes_prob": {"AA": 0.02, "AT": 0.03, "CA": 0.02},
+             "order": 2}
+
+    sequences = {"seq1": "AATAAA", "seq2": "ATGCC"}
+
+
+    dict_proba_seq, dict_log_proba = sequence_probability(sequences, model)
+
+    proba1 = 0.02 * 0.2 * 0.2 * 0.1 * 0.25
+    proba2 = 0.03 * 0.4 * 0.2 * 0.5
+
+    log1 = math.log10(proba1)
+    log2 = math.log10(proba2)
+
+    assert dict_proba_seq["seq1"] == pytest.approx(proba1)
+    assert dict_proba_seq["seq2"] == pytest.approx(proba2)
+
+    assert dict_log_proba["seq1"] == pytest.approx(log1)
+    assert dict_log_proba["seq2"] == pytest.approx(log2)

@@ -27,18 +27,6 @@ For each sequence, the program:
 
 If a sequence contains a prefix or context absent from the model, its probability it set to 0.
 
-OPTIONS
-    -h, --help
-        Display this help message and exit.
-
-    -i, --input FASTA_FILE
-        Path to the input FASTA file.
-
-    -m, --matrix MATRIX_MARKOV_FILE
-        Path to the Markov transition matrix in tabular format.
-
-    -o, --output OUTPUT_FILE
-        Output TSV file.
 
 OUTPUT
 
@@ -58,7 +46,9 @@ The results are written to a tab-separated value file (extension .tsv).
 
 EXAMPLES
 
-    seq-proba -i data/yeast_MET_upstream.fasta  -m data/markov_transitions_m2_2026_05_04.tsv -o ../result
+    seq-proba -i data/seq/yeast_MET_upstream.fasta \\
+        -m data/bg-models/yeast_all-upstream-noorf_Markov_m2.tsv \\
+        -o results/yeast_MET_upstream_proba.tsv
 
 AUTHOR / CREDITS
     Anouk RISCH
@@ -81,12 +71,9 @@ import time
 import datetime
 import os
 import sys
-import math
 
 # Coloring warning text
 from colorama import init, Fore
-
-import bioseq_kmers.background_models as bg
 
 ############################
 #   Internal libraries     #
@@ -95,6 +82,7 @@ import bioseq_kmers.background_models as bg
 # Read FASTA file
 import bioseq_kmers.sequences as seq
 import bioseq_kmers.utils as utils
+import bioseq_kmers.background_models as bg
 
 ################################################################
 ## FUNCTIONS
@@ -117,7 +105,9 @@ def main():
     ## OUTPUT DIRECTORY FILE
 
     # Specify which command-line options the program is willing to accept
-    parser = argparse.ArgumentParser(description="Sequence probability from background model")
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
 
     # Define args used by the user (input, output, Markov order)
     parser.add_argument("-i", "--input",
@@ -185,10 +175,16 @@ def main():
         # Header
         tsv_file.write("#id\tlength\tproba_b\tlog_proba\n")
 
-        for seq_id, sequence in sequences.items():
+
+        dict_proba_seq, dict_log_proba = bg.sequence_probability(sequences, model)
+
+        for seq_id in dict_proba_seq.keys():
+            sequence = sequences[seq_id]
             length_seq = len(sequence)
-            p, log_p = bg.sequence_probability(sequence, model)
-            tsv_file.write(f"{seq_id}\t{length_seq}\t{p:.6e}\t{log_p:.2f}\n")
+            log_p = dict_log_proba[seq_id]
+            p = utils.engineer_mode(log_p) # enables printing values smaller than 1e-324
+
+            tsv_file.write(f"{seq_id}\t{length_seq}\t{p}\t{log_p:.2f}\n")
 
         # End time
         end_time = time.perf_counter()
