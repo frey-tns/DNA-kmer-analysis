@@ -81,12 +81,9 @@ import time
 import datetime
 import os
 import sys
-import math
 
 # Coloring warning text
 from colorama import init, Fore
-
-import bioseq_kmers.background_models as bg
 
 ############################
 #   Internal libraries     #
@@ -95,6 +92,7 @@ import bioseq_kmers.background_models as bg
 # Read FASTA file
 import bioseq_kmers.sequences as seq
 import bioseq_kmers.utils as utils
+import bioseq_kmers.background_models as bg
 
 ################################################################
 ## FUNCTIONS
@@ -185,10 +183,19 @@ def main():
         # Header
         tsv_file.write("#id\tlength\tproba_b\tlog_proba\n")
 
-        for seq_id, sequence in sequences.items():
+        # for seq_id, sequence in sequences.items():
+        #     length_seq = len(sequence)
+        #     p, log_p = bg.sequence_probability(sequences, model)
+        #
+        dict_proba_seq = bg.sequence_probability(sequences, model)
+
+        for seq_id, value in dict_proba_seq.items():
+            sequence = sequences[seq_id]
             length_seq = len(sequence)
-            p, log_p = bg.sequence_probability(sequence, model)
-            tsv_file.write(f"{seq_id}\t{length_seq}\t{p:.6e}\t{log_p:.2f}\n")
+            p = value["probability"]
+            log_p = value["log_proba"]
+
+            tsv_file.write(f"{seq_id}\t{length_seq}\t{p}\t{log_p:.2f}\n")
 
         # End time
         end_time = time.perf_counter()
