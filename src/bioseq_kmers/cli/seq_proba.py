@@ -27,18 +27,6 @@ For each sequence, the program:
 
 If a sequence contains a prefix or context absent from the model, its probability it set to 0.
 
-OPTIONS
-    -h, --help
-        Display this help message and exit.
-
-    -i, --input FASTA_FILE
-        Path to the input FASTA file.
-
-    -m, --matrix MATRIX_MARKOV_FILE
-        Path to the Markov transition matrix in tabular format.
-
-    -o, --output OUTPUT_FILE
-        Output TSV file.
 
 OUTPUT
 
@@ -58,8 +46,8 @@ The results are written to a tab-separated value file (extension .tsv).
 
 EXAMPLES
 
-    seq-proba -i data/seq/yeast_MET_upstream.fasta \
-        -m data/bg-models/yeast_all-upstream-noorf_Markov_m2.tsv \
+    seq-proba -i data/seq/yeast_MET_upstream.fasta \\
+        -m data/bg-models/yeast_all-upstream-noorf_Markov_m2.tsv \\
         -o results/yeast_MET_upstream_proba.tsv
 
 AUTHOR / CREDITS
@@ -117,7 +105,9 @@ def main():
     ## OUTPUT DIRECTORY FILE
 
     # Specify which command-line options the program is willing to accept
-    parser = argparse.ArgumentParser(description="Sequence probability from background model")
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
 
     # Define args used by the user (input, output, Markov order)
     parser.add_argument("-i", "--input",
