@@ -119,13 +119,12 @@ def tests_sequence_probability_empty_seq_order_0():
              "prefixes_prob": {"": 1},
              "order": 0}
 
-    sequences = {"": ""}
+    sequences = {"seq1": ""}
     dict_proba_seq, dict_log_proba = sequence_probability(sequences, model)
 
-    exp_proba = 1
 
-    assert dict_proba_seq[""] == pytest.approx(exp_proba)
-    assert dict_log_proba[""] == math.log10(exp_proba)
+    assert dict_proba_seq["seq1"] == 0
+    assert dict_log_proba["seq1"] == float("-inf")
 
 def tests_sequence_probability_empty_seq_order_1():
     model = {"matrix": {"A": {"A": 0.2, "C": 0.1, "G": 0.4, "T": 0.4},
@@ -135,12 +134,11 @@ def tests_sequence_probability_empty_seq_order_1():
              "prefixes_prob": {"A": 0.5, "C": 0.2, "G": 0.1, "T": 0.2},
              "order": 1}
 
-    sequences = {"": ""}
+    sequences = {"seq1": ""}
     dict_proba_seq, dict_log_proba = sequence_probability(sequences, model)
 
-    exp_proba = 1
-    assert dict_proba_seq[""] == pytest.approx(exp_proba)
-    assert dict_log_proba[""] == float("-inf")
+    assert dict_proba_seq["seq1"] == 0
+    assert dict_log_proba["seq1"] == float("-inf")
 
 
 def tests_sequence_probability_empty_seq_order_2():
@@ -151,11 +149,12 @@ def tests_sequence_probability_empty_seq_order_2():
              "prefixes_prob": {"AA": 0.02, "AT": 0.03, "CA": 0.02},
              "order": 2}
 
+    sequences = {"seq1": ""}
+    dict_proba_seq, dict_log_proba = sequence_probability(sequences, model)
 
-    proba, log_proba = sequence_probability("", model)
+    assert dict_proba_seq["seq1"] == 0
+    assert dict_log_proba["seq1"] == float("-inf")
 
-    assert proba == 0
-    assert log_proba == float("-inf")
 
 def test_sequence_probability_prefix_only():
     model = {"matrix": {"AT": {"A": 0.2, "C": 0.2, "G": 0.4, "T": 0.2},
@@ -166,7 +165,7 @@ def test_sequence_probability_prefix_only():
              "order": 2}
 
 
-    proba, log_proba = sequence_probability("AT", model)
+    proba, log_proba = sequence_probability({"seq1":"AT"}, model)
 
     assert proba == pytest.approx(0.03)
     assert log_proba == math.log10(0.03)
