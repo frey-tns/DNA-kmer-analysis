@@ -344,7 +344,7 @@ def sequence_probability(sequences, model):
     # Extract the order of the model
     order = model["order"]
 
-    dict_proba_seq = {}
+    dict_proba = {}
     dict_log_proba = {}
 
     for seq_id, sequence in tqdm(sequences.items()):
@@ -357,7 +357,7 @@ def sequence_probability(sequences, model):
         # If the sequence is too short or an empty sequence, the probability is null
         if len(sequence) < order or len(sequence) == 0:
 
-            dict_proba_seq[seq_id] = 0.0
+            dict_proba[seq_id] = 0.0
             dict_log_proba[seq_id] = float("-inf")
 
             continue
@@ -372,12 +372,12 @@ def sequence_probability(sequences, model):
 
                 if residue_proba == 0:
 
-                    dict_proba_seq[seq_id] = 0.0
+                    dict_proba[seq_id] = 0.0
                     dict_log_proba[seq_id] = float("-inf")
 
                 log_proba += math.log10(residue_proba)
 
-            dict_proba_seq[seq_id] = 10**log_proba
+            dict_proba[seq_id] = 10**log_proba
             dict_log_proba[seq_id] = float("-inf")
 
         # Extract first prefix
@@ -392,7 +392,7 @@ def sequence_probability(sequences, model):
         # Initialize log_proba
         prefix_prob = prefixes_prob[initial_prefix]
         if prefix_prob == 0:
-            dict_proba_seq[seq_id] = 0.0
+            dict_proba[seq_id] = 0.0
             dict_log_proba[seq_id] = float("-inf")
         log_proba = math.log10(prefix_prob)
 
@@ -417,14 +417,14 @@ def sequence_probability(sequences, model):
             residue_proba = matrix[prefix].get(base, 0.0)
 
             if residue_proba == 0:
-                dict_proba_seq[seq_id] = 0.0
+                dict_proba[seq_id] = 0.0
                 dict_log_proba[seq_id] = float("-inf")
 
             log_proba += math.log10(residue_proba)
 
 #        scientific_prob = utils.engineer_mode(log_proba)
 
-        dict_proba_seq[seq_id] = 10 ** log_proba
+        dict_proba[seq_id] = 10 ** log_proba
         dict_log_proba[seq_id] = log_proba
 
-    return dict_proba_seq, dict_log_proba
+    return dict_proba, dict_log_proba
