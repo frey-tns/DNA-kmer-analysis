@@ -1,10 +1,8 @@
 import argparse
+import math
 import os
 # For shell command string manipulation
 import shlex
-
-from colorama import reinit
-
 
 #################################################
 #   Function: Defined the format command line   #
@@ -80,3 +78,16 @@ def min_interger(min_value):
         return value
 
     return validator
+
+#####################################
+#   Function: scientific notation   #
+#####################################
+def engineer_mode(log10_value, precision=3):
+    """
+    Convert a log10 probability into scientific notation string
+
+    """
+    exponent = math.floor(log10_value)
+    mantissa = 10 ** (log10_value - exponent)
+
+    return f"{mantissa:.{precision}f}e{exponent}"
