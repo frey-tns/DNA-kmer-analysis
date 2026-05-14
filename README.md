@@ -34,6 +34,9 @@ This software is a re-implementation of the `oligo-analysis` tool from [RSAT](ht
 
 ### 🔄 Pipeline workflow
 
+![pipeline workflow](pipeline_workflow_Eng.drawio.png)
+
+
 1. `markov-from-seq`: compute a background model based on a set of background sequences. 
 2. `kmer-anlysis`: compute  occurrences and derived statistics of the sequences of interest, given the background model. 
 

@@ -41,6 +41,7 @@ VERSION
 #   Libraries   #
 #################
 import os
+import gzip
 
 # progress bar
 from tqdm import tqdm
@@ -53,35 +54,42 @@ from tqdm import tqdm
 # Outputs: - Number of sequence in the fasta file   #
 #          - Sum of length                          #
 #####################################################
+VALID_BASES = set("ACGTN")
 
 ## READ FASTA FILE
 def read_fasta(file_path):
     """
-    Load and read FASTA file from local path.
+    Read sequences from a FASTA-formatted file
 
     Args:
-        file_path (str): FASTA file.
+        file_path (str): relative or absolute path to the FASTA file.
 
     Returns:
-        dict: dictionary {ID : sequence}
+        dico_sequences: dictionary {ID : sequence}
+        total_length: total length of sequence (Integer)
+        seq_number: number of sequences (Integer)
     """
 
     # Did file path already exist
     if not os.path.exists(file_path):
         # If not stop the program
-        raise FileNotFoundError(f"[ERROR] Input FASTA file not found: {file_path}\n"
-                                f"Check working directory or use absolute path.")
+        raise FileNotFoundError(f"[ERROR] Input FASTA file not found: {file_path}\n")
 
     # Initialize dictionary who contain FASTA sequences
     dico_sequences = {}
     # Initialize FASTA ID as an empty string
     current_id = ""
 
-    with open(file_path, "r") as fasta_file:
-        # For each line present in FASTA file
+    # Choose opener depending on extension
+    gzip_opener = gzip.open if file_path.lower().endswith(".gz") else open
+
+    with gzip_opener(file_path, "rt", encoding="utf-8") as fasta_file:
+        line_count = 0 # line counter
+        # For each line in FASTA file
         for line in tqdm(fasta_file, desc="Reading FASTA file"):
-            # Remove the spaces on the right
+            # Remove spaces on the right
             line = line.rstrip()
+            line_count += 1
 
             # FASTA pipe detection
             if line.startswith(">"):
@@ -90,17 +98,24 @@ def read_fasta(file_path):
                 # Adds FASTA ID as key in sequences dictionary
                 dico_sequences[current_id] = ""
 
-            else:
-                # If there is a key in sequences dictionary
-                if current_id != "":
-                    # Adds DNA sequence as value in sequences dictionary
-                    dico_sequences[current_id] += line.upper()
+            # If there is a key in sequences dictionary
+            elif current_id != "":
+
+                ##  Check that the new line only contains letters considered valid for a DNA sequence
+                sequence_to_add = line.upper().replace(" ", "")
+                invalid = set(sequence_to_add) - VALID_BASES
+
+                if invalid:
+                    raise ValueError(f"[ERROR] line {line_count} contains invalid letters: {invalid}\n")
+
+                # Adds DNA sequence as value in sequences dictionary
+                dico_sequences[current_id] += sequence_to_add
+
 
     ## STAT
 
     # Number of sequence
     seq_number = len(dico_sequences)
-
     # Sum of lengths
     total_length = sum(len(seq) for seq in dico_sequences.values())
 
