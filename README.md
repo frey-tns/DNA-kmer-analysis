@@ -5,7 +5,7 @@ RISCH Anouk
 
 ## Table of contents
 
-- [Description](#-description-)
+- [Description](#-description)
 - [Pipeline workflow](#-pipeline-workflow)
 - [Input](#-input)
 - [Output](#-output)
@@ -14,7 +14,7 @@ RISCH Anouk
 - [Quick start](#-quick-start)
 - [Usage and options](#-usage-and-options)
 
-### 🧬 Description 
+### 🧬 Description
 
 `kmer-analysis` is a command-line tool for analyzing k-mers in biological sequences.
 It allows downstream analyses such as k-mers statistics, background model estimation (Bernoulli/Markov models) and sequence probability computation.  
