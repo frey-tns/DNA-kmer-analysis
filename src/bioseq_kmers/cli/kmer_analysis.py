@@ -288,9 +288,17 @@ def main():
                         type=min_interger(1),
                         help="Length of k-mer sequence (1-10)")
 
-    parser.add_argument("-bg", "--bg-order",
-                        required=False,
-                        help="Estimate background Markov model of given order from input sequences")
+    # Mutually exclusive background model options
+    bg_group = parser.add_mutually_exclusive_group()
+
+    bg_group.add_argument("-b", "--bernoulli",
+                          action="store_true",
+                          help="Bernoulli probability distribution")
+
+    bg_group.add_argument("-m", "--markov-order",
+                          type=min_interger(1),
+                          metavar="ORDER",
+                          help="Markov order of k-mer sequences")
 
     parser.add_argument("-o", "--output",
                         required=True,
@@ -309,6 +317,14 @@ def main():
 
     # Reads the command typed in the terminal
     args = parser.parse_args()
+
+    if args.markov_order is not None:
+        bg_order = args.markov_order
+
+    elif args.bernoulli:
+        bg_order = 0
+    else:
+        bg_order = 0
 
     # Define variable to use the value in the script
     input_file = args.input
@@ -343,16 +359,14 @@ def main():
     #    Statistics   #
     ###################
 
-    model = None
 
-    if args.bg_order is not None:
-        matrix, total_all, context_counts = bg.markov_model(sequences, args.bg_order)
+    matrix, total_all, context_counts = bg.markov_model(sequences, bg_order)
 
-        prefixes_prob = {prefix: context_counts[prefix] / total_all for prefix in context_counts.keys()}
+    prefixes_prob = {prefix: context_counts[prefix] / total_all for prefix in context_counts.keys()}
 
-        model = {"matrix": matrix,
-                 "prefixes_prob": prefixes_prob,
-                 "order": args.bg_order}
+    model = {"matrix": matrix,
+             "prefixes_prob": prefixes_prob,
+             "order": bg_order}
 
     # Nucleotides frequency
     frequencies = kmers.nucleotide_frequencies(sequences)
@@ -403,10 +417,8 @@ def main():
 
         # Expected frequencies
         if "exp_freq" in fields_compute:
-            if model is not None:
-                exp_freq = bg.sequence_probability(canon_kmer, model)
-            else:
-                exp_freq = bg.expected_frequencies(canon_kmer, frequencies)
+            exp_freq_dict, _ = bg.sequence_probability({"kmer":canon_kmer}, model)
+            exp_freq = exp_freq_dict["kmer"]
             row["exp_freq"] = exp_freq
 
         # Expected occurrences
@@ -414,7 +426,8 @@ def main():
             # Checks if exp_freq has already been calculated
             if "exp_freq" not in row:
                 # exp_freq does not yet exist
-                exp_freq = bg.expected_frequencies(canon_kmer, frequencies)
+                exp_freq_dict, _ = bg.sequence_probability({"kmer": canon_kmer}, model)
+                exp_freq = exp_freq_dict["kmer"]
             else:
                 # exp_freq already exists
                 exp_freq = row["exp_freq"]
