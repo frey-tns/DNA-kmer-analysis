@@ -66,10 +66,14 @@ VERSION
 #################
 #   Libraries   #
 #################
+import math
+
 # Progress bar
 from tqdm import tqdm
 # Count (cf k-mer count)
 from collections import Counter
+# Poisson stat
+from scipy.stats import poisson
 
 ################################################################
 ## CONSTANTS
@@ -236,3 +240,43 @@ def nucleotide_frequencies(sequences):
     frequencies = {base: counts[base] / total for base in "ATGC"}
 
     return frequencies
+
+###################################
+#   Function: Poisson statistic   #
+###################################
+def poisson_statistics(occ, exp_occ, nb_test):
+    """
+        Compute over-representation statistics using a Poisson model.
+
+    Args:
+        occ (int): Number of observed k-mer occurrences.
+        exp_occ (float): Number of expected k-mer occurrences.
+        nb_test (int): Number of k-mers tested for significance.
+
+    Returns:
+        dict: Dictionary of over-representation statistics
+        {"occ_P": p_value (float),
+        "occ_E": e_value (float),
+        "occ_sig": log10(e_value) (float)}
+
+    """
+    # Special case
+    if exp_occ <= 0:
+        return {"occ_P": 1.0,
+                "occ_E": 0.0,
+                "occ_sig": 0.0}
+
+    # P-value P(X >= x)
+    p_value = poisson.sf(occ - 1, exp_occ)
+    e_value = p_value * nb_test
+
+    # Avoid log10(0)
+    if p_value <= 0:
+        sig = float("inf")
+    else:
+        # Significance = log10(e_value)
+        sig = -math.log10(e_value)
+
+    return {"occ_P": p_value,
+            "occ_E": e_value,
+            "occ_sig": f"{sig:.3f}"}

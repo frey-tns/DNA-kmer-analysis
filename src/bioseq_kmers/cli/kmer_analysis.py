@@ -136,8 +136,11 @@ _DEFAULT_FIELDS = ["occ", "obs_freq"]
 
 # Dependencies between dictionaries
 _DICT_DEPENDENCIES = {"obs_freq" : ["occ"],
-                     "exp_occ" : ["exp_freq"],
-                     "exp_freq" : []}
+                      "exp_occ" : ["exp_freq"],
+                      "exp_freq" : [],
+                      "occ_P": ["occ", "exp_occ"],
+                      "occ_E": ["occ_P"],
+                      "occ_sig": ["occ_P", "occ_E"]}
 
 ################################################################
 ## FUNCTIONS
@@ -377,6 +380,8 @@ def main():
     frequencies = kmers.nucleotide_frequencies(sequences)
 
     observed_kmer_count = kmers.counts_kmer(sequences, kmer_length, strand_mode)
+    # Number of k-mers tested for significance (T from e-value)
+    nb_test = len(observed_kmer_count)
     # Number of all positions T = L - K + 1
     total_positions = sum(len(seq) - kmer_length + 1 for seq in sequences.values())
 
@@ -439,6 +444,13 @@ def main():
 
             row["exp_occ"] = total_positions * exp_freq
 
+        if any(f in fields_compute for f in ["occ_P", "occ_E", "occ_sig"]):
+
+            stats = kmers.poisson_statistics(occ=occ,exp_occ=row["exp_occ"], nb_test=nb_test)
+
+            # Merge dictionary into row
+            row.update(stats)
+
         # Observed frequencies
         if "obs_freq" in fields_compute:
             row["obs_freq"] = occ / total_positions
@@ -452,22 +464,18 @@ def main():
 
     # Current date
     today = str(datetime.date.today()).replace("-", "_")
-    # # Create DataFrame
-    # df = pd.DataFrame(result_analysis, columns=["seq", "id", "exp_freq", "exp_occ"])
-    # # Convert DataFrame into HTML format
-    # df_HTML = df.to_html(escape=False, index=False)
 
     # If the output path is a folder
     if os.path.isdir(output_file):
         # Define output path
         output_path = os.path.join(output_file,f"summary_kmer_analysis_{today}.tsv")
     else:
-        # Force the HTML extension
+        # Force the TSV extension
         if not output_file.endswith(".tsv"):
             output_file += ".tsv"
         # If it's a file
         output_path = output_file
-    # Write HTML file output
+    # Write TSV file output
     with open(output_path, "w") as tsv_file:
 
         ## Parameter
@@ -500,7 +508,10 @@ def main():
                        f"; exp_freq\t expected relative frequency\n"
                        f"; obs_freq\t observed relative frequency\n"
                        f"; occ\t observed occurrences\n"
-                       f"; exp_occ\t expected occurrences\n;\n")
+                       f"; exp_occ\t expected occurrences\n"
+                       f"; occ_P\t occurrence probability\n"
+                       f"; occ_E\t E-value for occurrence\n"
+                       f"; occ_sig\t occurrence significance\n;\n")
 
         # Kmer analysis table headers
         column = ["seq","id"] + requested_fields
