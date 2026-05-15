@@ -318,12 +318,14 @@ def main():
     # Reads the command typed in the terminal
     args = parser.parse_args()
 
+    # Bg model choose
     if args.markov_order is not None:
         bg_order = args.markov_order
 
     elif args.bernoulli:
         bg_order = 0
     else:
+        # If no argument Bernoulli by default
         bg_order = 0
 
     # Define variable to use the value in the script
@@ -353,17 +355,20 @@ def main():
     # Input URL of the FASTA file
     fasta_file = input_file
 
+    # Extract information from read_fasta (sequence, length, number of seq)
     sequences, total_length, seq_number = seq.read_fasta(fasta_file)
 
     ###################
     #    Statistics   #
     ###################
 
-
+    # Extract information from markov_model (matrix)
     matrix, total_all, context_counts = bg.markov_model(sequences, bg_order)
 
+    # Transforms the number of occurrences into P(prefix)
     prefixes_prob = {prefix: context_counts[prefix] / total_all for prefix in context_counts.keys()}
 
+    # Construction of the Markov model
     model = {"matrix": matrix,
              "prefixes_prob": prefixes_prob,
              "order": bg_order}
