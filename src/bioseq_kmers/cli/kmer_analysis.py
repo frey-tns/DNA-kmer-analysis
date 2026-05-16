@@ -277,7 +277,10 @@ def main():
     ## OUTPUT DIRECTORY FILE
 
     # Specify which command-line options the program is willing to accept
-    parser = argparse.ArgumentParser(description="k-mer analysis")
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+
     # Define args used by the user (here output path)
     parser.add_argument("-i", "--input",
                         required=True,
