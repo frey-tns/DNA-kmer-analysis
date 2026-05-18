@@ -79,11 +79,27 @@ Column contents :
 
 EXAMPLES
 
-    kmer-analysis -i data/seq/yeast_MET_upstream.fasta  -k 6 -s both -o results/yeast_MET_upstream_6nt_2str.tsv
+    Count mode : compute occurrences and relative frequency of each k-mer
 
-    kmer-analysis -i data/seq/yeast_MET_upstream.fasta  -k 6 -s both \\
-        --return occ,obs_freq,exp_occ,exp_freq \\
+    kmer-analysis -i data/seq/yeast_MET_upstream.fasta  -\\
+        k 6 -s both \\
+        --return occ,obs_freq \\
         -o results/yeast_MET_upstream_6nt_2str.tsv
+
+    Enrichment mode : detect over-represented k-mers relative to a
+    user-specified background model.
+
+    kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
+        -k 6 -s both \\
+        --background data/bg-models/yeast_all-upstream-noorf_Markov_mkv5.tsv \\
+        --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
+        -o results/yeast_MET_upstream_6nt_2str_mkv5_enriched.tsv
+
+    kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
+        -k 6 -s both \\
+        --background data/bg-models/yeast_all-upstream-noorf_Markov_mkv0.tsv \\
+        --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
+        -o results/yeast_MET_upstream_6nt_2str_mkv0_enriched.tsv
 
 AUTHOR / CREDITS
     Anouk RISCH
@@ -280,7 +296,11 @@ def main():
     ## OUTPUT DIRECTORY FILE
 
     # Specify which command-line options the program is willing to accept
-    parser = argparse.ArgumentParser(description="k-mer analysis")
+#    parser = argparse.ArgumentParser(description="k-mer analysis")
+    # Print a detailed description from the pydoc
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
     # Define args used by the user (here output path)
     parser.add_argument("-i", "--input",
                         required=True,
