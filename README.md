@@ -34,7 +34,7 @@ This software is a re-implementation of the `oligo-analysis` tool from [RSAT](ht
 
 ### 🔄 Pipeline workflow
 
-![pipeline workflow](pipeline_workflow_Eng.png)
+![pipeline workflow](pipeline_workflow_Eng2.png)
 
 
 1. `markov-from-seq`: compute a background model based on a set of background sequences. 
@@ -91,6 +91,10 @@ CAA	CAA|TTG	    0.019012088273685668    0.03916587276384037	    370 	179.61
 ⚠️ The output columns depend on the fields selected with  the option `--return`.
 
 ### ⚙️ Requirements
+
+```bash
+python -m pip install -r requirements.txt
+```
 
 The requirements are described in the files:
 
