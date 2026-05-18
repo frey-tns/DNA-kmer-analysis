@@ -349,7 +349,7 @@ def sequence_probability(sequences, model):
     dict_proba = {}
     dict_log_proba = {}
 
-    for seq_id, sequence in tqdm(sequences.items()):
+    for seq_id, sequence in tqdm(sequences.items(), desc="Computing sequence probabilities"):
 
     # For computational precision and efficiency, we first compute log_proba = log10(p) and then derive p = 10^log_proba
 
