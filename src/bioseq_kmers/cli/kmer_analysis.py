@@ -407,6 +407,14 @@ def main():
     # Number of all positions T = L - K + 1
     total_positions = sum(len(seq) - kmer_length + 1 for seq in sequences.values())
 
+    ## Expected k-mer probabilities (once)
+    all_exp_freq_dict = {}
+
+    if need_background:
+        all_kmers = {kmer: kmer for kmer in observed_kmer_count}
+
+        all_exp_freq_dict, _ = bg.sequence_probability(all_kmers,model)
+
     # List who contain output results
     result_analysis = []
 
@@ -449,8 +457,7 @@ def main():
 
         # Expected frequencies
         if "exp_freq" in fields_compute:
-            exp_freq_dict, _ = bg.sequence_probability({"kmer":canon_kmer}, model)
-            exp_freq = exp_freq_dict["kmer"]
+            exp_freq = all_exp_freq_dict[canon_kmer]
             row["exp_freq"] = exp_freq
 
         # Expected occurrences
@@ -458,8 +465,7 @@ def main():
             # Checks if exp_freq has already been calculated
             if "exp_freq" not in row:
                 # exp_freq does not yet exist
-                exp_freq_dict, _ = bg.sequence_probability({"kmer": canon_kmer}, model)
-                exp_freq = exp_freq_dict["kmer"]
+                exp_freq = all_exp_freq_dict[canon_kmer]
             else:
                 # exp_freq already exists
                 exp_freq = row["exp_freq"]
