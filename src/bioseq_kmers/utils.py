@@ -22,11 +22,15 @@ def format_command_line(argv):
     # Contains the rebuilt command
     list_cleaned_command = []
 
+    # Executable name only
+    program_name = os.path.basename(argv[0])
+    list_cleaned_command.append(shlex.quote(program_name))
+
     # The next argument is a file path
     skip_next = False
 
     # Iterates through each element of the order
-    for arg in argv:
+    for arg in argv[1:]:
 
         # If argument associated with -i or -o
         if skip_next:
