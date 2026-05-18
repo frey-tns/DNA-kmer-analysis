@@ -360,6 +360,9 @@ def main():
 
     fields_compute = resolve_dependencies(requested_fields)
 
+    # Fields requiring a background model
+    need_background = any(field in fields_compute for field in ["exp_freq", "exp_occ", "occ_P", "occ_E", "occ_sig"])
+
     ## CONDITION : does the files already exist ?
 
     # Extract the folder from the full path
@@ -384,26 +387,33 @@ def main():
     ###################
     #    Statistics   #
     ###################
+    model = None
 
-    # Extract information from markov_model (matrix)
-    matrix, total_all, context_counts = bg.markov_model(sequences, bg_order)
+    if need_background:
+        # Extract information from markov_model (matrix)
+        matrix, total_all, context_counts = bg.markov_model(sequences, bg_order)
 
-    # Transforms the number of occurrences into P(prefix)
-    prefixes_prob = {prefix: context_counts[prefix] / total_all for prefix in context_counts.keys()}
+        # Transforms the number of occurrences into P(prefix)
+        prefixes_prob = {prefix: context_counts[prefix] / total_all for prefix in context_counts.keys()}
 
-    # Construction of the Markov model
-    model = {"matrix": matrix,
-             "prefixes_prob": prefixes_prob,
-             "order": bg_order}
-
-    # Nucleotides frequency
-    frequencies = kmers.nucleotide_frequencies(sequences)
+        # Construction of the Markov model
+        model = {"matrix": matrix,
+                 "prefixes_prob": prefixes_prob,
+                 "order": bg_order}
 
     observed_kmer_count = kmers.counts_kmer(sequences, kmer_length, strand_mode)
     # Number of k-mers tested for significance (T from e-value)
     nb_test = len(observed_kmer_count)
     # Number of all positions T = L - K + 1
     total_positions = sum(len(seq) - kmer_length + 1 for seq in sequences.values())
+
+    ## Expected k-mer probabilities (once)
+    all_exp_freq_dict = {}
+
+    if need_background:
+        all_kmers = {kmer: kmer for kmer in observed_kmer_count}
+
+        all_exp_freq_dict, _ = bg.sequence_probability(all_kmers,model)
 
     # List who contain output results
     result_analysis = []
@@ -447,8 +457,7 @@ def main():
 
         # Expected frequencies
         if "exp_freq" in fields_compute:
-            exp_freq_dict, _ = bg.sequence_probability({"kmer":canon_kmer}, model)
-            exp_freq = exp_freq_dict["kmer"]
+            exp_freq = all_exp_freq_dict[canon_kmer]
             row["exp_freq"] = exp_freq
 
         # Expected occurrences
@@ -456,8 +465,7 @@ def main():
             # Checks if exp_freq has already been calculated
             if "exp_freq" not in row:
                 # exp_freq does not yet exist
-                exp_freq_dict, _ = bg.sequence_probability({"kmer": canon_kmer}, model)
-                exp_freq = exp_freq_dict["kmer"]
+                exp_freq = all_exp_freq_dict[canon_kmer]
             else:
                 # exp_freq already exists
                 exp_freq = row["exp_freq"]
