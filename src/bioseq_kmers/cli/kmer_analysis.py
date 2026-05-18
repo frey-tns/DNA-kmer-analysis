@@ -125,6 +125,7 @@ import os
 # For Benchmark
 import time
 import datetime
+import tracemalloc
 import sys
 
 # Coloring warning text
@@ -286,6 +287,9 @@ def main():
 
     # Time tracking (Benchmark)
     start_time = time.perf_counter()
+    # Memory tracking
+    tracemalloc.start()
+
     # Job started
     start_time_date = datetime.datetime.now()
 
@@ -571,16 +575,24 @@ def main():
 
         # End time
         end_time = time.perf_counter()
+        # Memory usage
+        current_memory, peak_memory = tracemalloc.get_traced_memory()
+        # End memory tracking
+        tracemalloc.stop()
+        # Convert
+        peak_memory_mb = peak_memory / (1024 ** 2)
         # Job ending
         end_time_date = datetime.datetime.now()
         duration = end_time - start_time
 
         tsv_file.write(f"; Job started\t{start_time_date}\n"
                        f"; Job done\t{end_time_date}\n"
-                       f"; Job duration\t{duration:.3f} seconds\n")
+                       f"; Job duration\t{duration:.3f} seconds\n"
+                       f"; Peak memory\t{peak_memory_mb:.2f} MB\n")
 
     print(f"{Fore.GREEN}Output written to {output_path}")
-    print(f"{Fore.CYAN}Duration : {duration:.3f} seconds\n")
+    print(f"{Fore.CYAN}Duration : {duration:.3f} seconds")
+    print(f"{Fore.MAGENTA}Peak memory usage : {peak_memory_mb:.2f} MB")
 
 #####################
 #   Executing code  #
