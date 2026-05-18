@@ -1,11 +1,22 @@
+-e git+https://github.com/frey-tns/DNA-kmer-analysis/@dfdb0768102a0bbce17fec50ba9d092fb69b518e#egg=bioseq_kmer_analysis
 certifi==2026.2.25
 charset-normalizer==3.4.7
+colorama==0.4.6
+-e git+https://github.com/frey-tns/DNA-kmer-analysis/@dfdb0768102a0bbce17fec50ba9d092fb69b518e#egg=dna_kmer_analysis
 idna==3.11
+iniconfig==2.3.0
+Jinja2==3.1.6
+markdown2==2.5.5
+MarkupSafe==3.0.3
 numpy==2.4.4
+packaging==26.2
 pandas==3.0.2
+pdoc==16.0.0
+pluggy==1.6.0
+Pygments==2.20.0
+pytest==9.0.3
 python-dateutil==2.9.0.post0
 requests==2.33.1
 six==1.17.0
+tqdm==4.67.3
 urllib3==2.6.3
-tqdm>=4.67.3
-colorama==0.4.6
