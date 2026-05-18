@@ -360,6 +360,9 @@ def main():
 
     fields_compute = resolve_dependencies(requested_fields)
 
+    # Fields requiring a background model
+    need_background = any(field in fields_compute for field in ["exp_freq", "exp_occ", "occ_P", "occ_E", "occ_sig"])
+
     ## CONDITION : does the files already exist ?
 
     # Extract the folder from the full path
@@ -384,20 +387,19 @@ def main():
     ###################
     #    Statistics   #
     ###################
+    model = None
 
-    # Extract information from markov_model (matrix)
-    matrix, total_all, context_counts = bg.markov_model(sequences, bg_order)
+    if need_background:
+        # Extract information from markov_model (matrix)
+        matrix, total_all, context_counts = bg.markov_model(sequences, bg_order)
 
-    # Transforms the number of occurrences into P(prefix)
-    prefixes_prob = {prefix: context_counts[prefix] / total_all for prefix in context_counts.keys()}
+        # Transforms the number of occurrences into P(prefix)
+        prefixes_prob = {prefix: context_counts[prefix] / total_all for prefix in context_counts.keys()}
 
-    # Construction of the Markov model
-    model = {"matrix": matrix,
-             "prefixes_prob": prefixes_prob,
-             "order": bg_order}
-
-    # Nucleotides frequency
-    frequencies = kmers.nucleotide_frequencies(sequences)
+        # Construction of the Markov model
+        model = {"matrix": matrix,
+                 "prefixes_prob": prefixes_prob,
+                 "order": bg_order}
 
     observed_kmer_count = kmers.counts_kmer(sequences, kmer_length, strand_mode)
     # Number of k-mers tested for significance (T from e-value)

@@ -151,7 +151,7 @@ def canonic_kmer(kmer):
 #   Function : Count observed kmer  #
 #####################################
 
-def counts_kmer(sequence, k_length, strand_mode):
+def counts_kmer(sequence, k_length, strand_mode, desc="Counting k-mers"):
     """
     Count observed k-mers in a set of DNA sequences.
 
@@ -177,7 +177,7 @@ def counts_kmer(sequence, k_length, strand_mode):
     kmer_count = Counter()
 
     # Progress bar
-    for seq_fasta in tqdm(sequence.values(), desc="Counting k-mers"):
+    for seq_fasta in tqdm(sequence.values(), desc=desc):
        # Explore all possible positions
        for i_position in range(len(seq_fasta) - k_length + 1):
            # Extract kmer
