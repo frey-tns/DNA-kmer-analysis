@@ -126,6 +126,7 @@ import os
 import time
 import datetime
 import sys
+import warnings
 
 # Coloring warning text
 from colorama import init, Fore
@@ -306,6 +307,10 @@ def main():
                         required=True,
                         help="Path to the input fasta file")
 
+    parser.add_argument("--background",
+                        required=False,
+                        help="Transition Matrix of background model")
+
     parser.add_argument("-k", "--kmer-length",
                         required=True,
                         type=min_interger(1),
@@ -341,14 +346,26 @@ def main():
     # Reads the command typed in the terminal
     args = parser.parse_args()
 
+    # Warning message for markov-order/bernoulli option when matrix transition is used
+    if args.background and (args.bernoulli or args.markov_order is not None):
+        warnings.warn(f"\nOptions --bernoulli and --markov-order are ignored \n"
+                      f"when --background is provided because the background model \n"
+                      f"is already defined in the transition matrix.\n",
+                       UserWarning)
+
+    if args.background:
+        background_model = "background"
     # Bg model choose
-    if args.markov_order is not None:
+    elif args.markov_order is not None:
+        background_model = "markov"
         bg_order = args.markov_order
 
     elif args.bernoulli:
+        background_model = "bernoulli"
         bg_order = 0
     else:
         # If no argument Bernoulli by default
+        background_model = "bernoulli"
         bg_order = 0
 
     # Define variable to use the value in the script
@@ -390,16 +407,22 @@ def main():
     model = None
 
     if need_background:
-        # Extract information from markov_model (matrix)
-        matrix, total_all, context_counts = bg.markov_model(sequences, bg_order)
 
-        # Transforms the number of occurrences into P(prefix)
-        prefixes_prob = {prefix: context_counts[prefix] / total_all for prefix in context_counts.keys()}
+        # Load background model
+        if background_model == "background":
+            model = bg.load_markov_matrix(args.background)
 
-        # Construction of the Markov model
-        model = {"matrix": matrix,
-                 "prefixes_prob": prefixes_prob,
-                 "order": bg_order}
+        else:
+            # Extract information from markov_model (matrix)
+            matrix, total_all, context_counts = bg.markov_model(sequences, bg_order)
+
+            # Transforms the number of occurrences into P(prefix)
+            prefixes_prob = {prefix: context_counts[prefix] / total_all for prefix in context_counts.keys()}
+
+            # Construction of the Markov model
+            model = {"matrix": matrix,
+                     "prefixes_prob": prefixes_prob,
+                     "order": bg_order}
 
     observed_kmer_count = kmers.counts_kmer(sequences, kmer_length, strand_mode)
     # Number of k-mers tested for significance (T from e-value)
