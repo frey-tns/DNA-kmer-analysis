@@ -287,8 +287,6 @@ def main():
 
     # Time tracking (Benchmark)
     start_time = time.perf_counter()
-    # Memory tracking
-    tracemalloc.start()
 
     # Job started
     start_time_date = datetime.datetime.now()
@@ -342,8 +340,17 @@ def main():
                         default = None,
                         help = "Comma-separated list of fields to return. Default: occ,freq. Supported values: occ,obs_freq,exp_occ,exp_freq")
 
+    parser.add_argument("--memory-usage",
+                        required=False,
+                        help="Measure memory usage with tracemalloc")
+
+
     # Reads the command typed in the terminal
     args = parser.parse_args()
+
+    if args.memory_usage:
+        # Memory tracking
+        tracemalloc.start()
 
     # Bg model choose
     if args.markov_order is not None:
@@ -575,24 +582,31 @@ def main():
 
         # End time
         end_time = time.perf_counter()
-        # Memory usage
-        current_memory, peak_memory = tracemalloc.get_traced_memory()
-        # End memory tracking
-        tracemalloc.stop()
-        # Convert
-        peak_memory_mb = peak_memory / (1024 ** 2)
+
+        if args.memory_usage:
+            # Memory usage
+            current_memory, peak_memory = tracemalloc.get_traced_memory()
+            # End memory tracking
+            tracemalloc.stop()
+            # Convert
+            peak_memory_mb = peak_memory / (1024 ** 2)
+
         # Job ending
         end_time_date = datetime.datetime.now()
         duration = end_time - start_time
 
         tsv_file.write(f"; Job started\t{start_time_date}\n"
                        f"; Job done\t{end_time_date}\n"
-                       f"; Job duration\t{duration:.3f} seconds\n"
-                       f"; Peak memory\t{peak_memory_mb:.2f} MB\n")
+                       f"; Job duration\t{duration:.3f} seconds\n")
+
+        if args.memory_usage:
+            tsv_file.write(f"; Peak memory\t{peak_memory_mb:.2f} MB\n")
 
     print(f"{Fore.GREEN}Output written to {output_path}")
     print(f"{Fore.CYAN}Duration : {duration:.3f} seconds")
-    print(f"{Fore.MAGENTA}Peak memory usage : {peak_memory_mb:.2f} MB")
+
+    if args.memory_usage:
+        print(f"{Fore.MAGENTA}Peak memory usage : {peak_memory_mb:.2f} MB")
 
 #####################
 #   Executing code  #
