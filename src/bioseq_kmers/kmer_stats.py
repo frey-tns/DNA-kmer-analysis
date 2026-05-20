@@ -259,11 +259,6 @@ def poisson_statistics(occ, exp_occ, nb_test):
         "occ_sig": log10(e_value) (float)}
 
     """
-    # Special case
-    if exp_occ <= 0:
-        return {"occ_P": 1.0,
-                "occ_E": 0.0,
-                "occ_sig": 0.0}
 
     # P-value P(X >= x)
     p_value = poisson.sf(occ - 1, exp_occ)
@@ -271,7 +266,7 @@ def poisson_statistics(occ, exp_occ, nb_test):
 
     # Avoid log10(0)
     if p_value <= 0:
-        sig = float("inf")
+        sig = -350
     else:
         # Significance = log10(e_value)
         sig = -math.log10(e_value)
