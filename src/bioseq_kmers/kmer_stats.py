@@ -75,6 +75,8 @@ from collections import Counter
 # Poisson stat
 from scipy.stats import poisson
 
+import bioseq_kmers.utils as utils
+
 ################################################################
 ## CONSTANTS
 ################################################################
@@ -259,18 +261,19 @@ def poisson_statistics(occ, exp_occ, nb_test):
         "occ_sig": log10(e_value) (float)}
 
     """
+    log_p = poisson.logsf(occ - 1, exp_occ) / math.log(10)
 
-    # P-value P(X >= x)
-    p_value = poisson.sf(occ - 1, exp_occ)
-    e_value = p_value * nb_test
+    # log10 E-value
+    log_e = log_p + math.log10(nb_test)
 
-    # Avoid log10(0)
-    if p_value <= 0:
-        sig = -350
-    else:
-        # Significance = log10(e_value)
-        sig = -math.log10(e_value)
+    # significance RSAT-style
+    sig = -log_e
+    # formatting SAFE
+    p_ing = utils.engineer_mode(log_p)
+    e_ing = utils.engineer_mode(log_e)
 
-    return {"occ_P": p_value,
-            "occ_E": e_value,
-            "occ_sig": f"{sig:.3f}"}
+    sig_ing = f"{sig:.3f}"
+
+    return {"occ_P": p_ing,
+            "occ_E": e_ing,
+            "occ_sig": sig_ing}
