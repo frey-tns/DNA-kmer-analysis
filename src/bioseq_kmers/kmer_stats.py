@@ -269,12 +269,7 @@ def poisson_statistics(occ, exp_occ, nb_test):
 
     # significance
     sig = -log_e
-    # formatting
-    p_ing = utils.engineer_mode(log_p)
-    e_ing = utils.engineer_mode(log_e)
 
-    sig_ing = f"{sig:.3f}"
-
-    return {"occ_P": p_ing,
-            "occ_E": e_ing,
-            "occ_sig": sig_ing}
+    return {"occ_P": log_p,
+            "occ_E": log_e,
+            "occ_sig": round(sig, 3)}

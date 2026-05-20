@@ -3,6 +3,7 @@
 #################
 from collections import Counter
 import pytest
+import math
 
 ############################
 #   Internal libraries     #
@@ -87,3 +88,14 @@ def test_nucleotide_frequencies_sum_to_one():
     frequencies = stat.nucleotide_frequencies(sequences)
 
     assert sum(frequencies.values()) == pytest.approx(1.0)
+
+@pytest.mark.parametrize("lam", [10, 20, 50, 3000])
+def test_poisson_statistics_lambda(lam):
+    occ = 10
+    nb_test = 1000
+
+    stats = stat.poisson_statistics(occ, lam, nb_test)
+
+    assert math.isfinite(stats["occ_P"])
+    assert math.isclose(stats["occ_E"], stats["occ_P"] + math.log10(nb_test))
+    assert round(stats["occ_sig"], 3) == round(-stats["occ_E"], 3)
