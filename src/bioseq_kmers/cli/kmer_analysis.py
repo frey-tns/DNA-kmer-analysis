@@ -89,17 +89,19 @@ EXAMPLES
     Enrichment mode : detect over-represented k-mers relative to a
     user-specified background model.
 
+    # Analyse 6-mers with a Bernoulli model (Markov model of order 0
+    kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
+        -k 6 -s both --bernoulli \\
+        --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
+        -o results/yeast_MET_upstream_6nt_2str_mkv0_enriched.tsv
+
+    # Analyse 6-mers with Markov model of order 5 provided as a transition matrix
     kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
         -k 6 -s both \\
         --background data/bg-models/yeast_all-upstream-noorf_Markov_mkv5.tsv \\
         --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
         -o results/yeast_MET_upstream_6nt_2str_mkv5_enriched.tsv
 
-    kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
-        -k 6 -s both \\
-        --background data/bg-models/yeast_all-upstream-noorf_Markov_mkv0.tsv \\
-        --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
-        -o results/yeast_MET_upstream_6nt_2str_mkv0_enriched.tsv
 
 AUTHOR / CREDITS
     Anouk RISCH
@@ -125,6 +127,7 @@ import os
 # For Benchmark
 import time
 import datetime
+import tracemalloc
 import sys
 import warnings
 
@@ -287,6 +290,7 @@ def main():
 
     # Time tracking (Benchmark)
     start_time = time.perf_counter()
+
     # Job started
     start_time_date = datetime.datetime.now()
 
@@ -343,6 +347,11 @@ def main():
                         default = None,
                         help = "Comma-separated list of fields to return. Default: occ,freq. Supported values: occ,obs_freq,exp_occ,exp_freq")
 
+    parser.add_argument("--memory-usage",
+                        action="store_true",
+                        help="Measure memory usage with tracemalloc. Beware : should be used only for tests, because it slows down the computation. ")
+
+
     # Reads the command typed in the terminal
     args = parser.parse_args()
 
@@ -355,6 +364,10 @@ def main():
 
     if args.background:
         background_model = "background"
+    if args.memory_usage:
+        # Memory tracking
+        tracemalloc.start()
+
     # Bg model choose
     elif args.markov_order is not None:
         background_model = "markov"
@@ -594,6 +607,15 @@ def main():
 
         # End time
         end_time = time.perf_counter()
+
+        if args.memory_usage:
+            # Memory usage
+            current_memory, peak_memory = tracemalloc.get_traced_memory()
+            # End memory tracking
+            tracemalloc.stop()
+            # Convert
+            peak_memory_mb = peak_memory / (1024 ** 2)
+
         # Job ending
         end_time_date = datetime.datetime.now()
         duration = end_time - start_time
@@ -602,8 +624,14 @@ def main():
                        f"; Job done\t{end_time_date}\n"
                        f"; Job duration\t{duration:.3f} seconds\n")
 
+        if args.memory_usage:
+            tsv_file.write(f"; Peak memory\t{peak_memory_mb:.2f} MB\n")
+
     print(f"{Fore.GREEN}Output written to {output_path}")
-    print(f"{Fore.CYAN}Duration : {duration:.3f} seconds\n")
+    print(f"{Fore.CYAN}Duration : {duration:.3f} seconds")
+
+    if args.memory_usage:
+        print(f"{Fore.MAGENTA}Peak memory usage : {peak_memory_mb:.2f} MB")
 
 #####################
 #   Executing code  #

@@ -5,18 +5,16 @@ RISCH Anouk
 
 ## Table of contents
 
-- [Description](#-description-)
+- [Description](#-description)
 - [Pipeline workflow](#-pipeline-workflow)
 - [Input](#-input)
 - [Output](#-output)
 - [Requirements](#-requirements)
 - [Installation](#-installation)
 - [Quick start](#-quick-start)
-- [Usage](#-usage-)
-- [Examples](#examples)
-- [Related tools](#-related-tools)
+- [Usage and options](#-usage-and-options)
 
-### 🧬 Description 
+### 🧬 Description
 
 `kmer-analysis` is a command-line tool for analyzing k-mers in biological sequences.
 It allows downstream analyses such as k-mers statistics, background model estimation (Bernoulli/Markov models) and sequence probability computation.  
@@ -26,17 +24,17 @@ This software is a re-implementation of the `oligo-analysis` tool from [RSAT](ht
 
 ### Package contents
 
-| Tool | Purpose |
-|:----------------:|:------------------------------------------------|
-| `markov-from-seq` | estimate the parameters of a Markov model of order $m$ (in the form of a transition matrix) from a set of background sequences. By extension, a Bernoulli model can be computed by setting $m=0$. |
-| `markov-from-kmers` | estimate a background Markov model of order $m$ from a table of k-mer occurrences, where $k=m+1$ (corresponds to RSAT [convert-background-model](https://rsat.eead.csic.es/plants/convert-background-model_form.cgi) |
-| `kmer-analysis` | compute k-mer occurrences in a set of input sequences, and derive over- or under-representation statistics given a user-specified background model |
-| `seq-proba` | compute sequence probabilities under a Bernoulli or a Markov model (corresponds to RSAT [seq-proba](https://rsat.eead.csic.es/plants/seq-proba_form.cgi)) |
+| Tool | Purpose                                                                                                                                                                                                               |
+|:----------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `markov-from-seq` | estimate the parameters of a Markov model of order $m$ (in the form of a transition matrix) from a set of background sequences. By extension, a Bernoulli model can be computed by setting $m=0$.                     |
+| `markov-from-kmers` | estimate a background Markov model of order $m$ from a table of k-mer occurrences, where $k=m+1$ (corresponds to RSAT [convert-background-model](https://rsat.eead.csic.es/plants/convert-background-model_form.cgi)) |
+| `kmer-analysis` | compute k-mer occurrences in a set of input sequences, and derive over- or under-representation statistics given a user-specified background model                                                                    |
+| `seq-proba` | compute sequence probabilities under a Bernoulli or a Markov model (corresponds to RSAT [seq-proba](https://rsat.eead.csic.es/plants/seq-proba_form.cgi))                                                             |
 
 
 ### 🔄 Pipeline workflow
 
-![pipeline workflow](pipeline_workflow_Eng.drawio.png)
+![pipeline workflow](pipeline_workflow_Eng2.png)
 
 
 1. `markov-from-seq`: compute a background model based on a set of background sequences. 
@@ -94,6 +92,10 @@ CAA	CAA|TTG	    0.019012088273685668    0.03916587276384037	    370 	179.61
 
 ### ⚙️ Requirements
 
+```bash
+python -m pip install -r requirements.txt
+```
+
 The requirements are described in the files:
 
 - [environment.txt](environment.txt): user requirements
@@ -115,7 +117,6 @@ markov-from-seq -i data/seq/yeast_all-upstream-noorf.fasta -m 4 -o results/bg-mo
 ## Analyse kmers in the upstream sequences of yeast genes involved in methionine metabolism
 mkdir -p results/kmer-statistics
 kmer-analysis -i data/seq/yeast_MET_upstream.fasta -k 6 -s both -o results/kmer-statistics/yeast_MET_upstream_6nt_2str.tsv
-
 ```
 
 ### ▶️ Usage and options
