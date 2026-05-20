@@ -361,6 +361,7 @@ def sequence_probability(sequences, model):
 
             dict_proba[seq_id] = 0.0
             dict_log_proba[seq_id] = float("-inf")
+            continue
 
 
         ## Special case: Bernoulli model (Markov order==0)
@@ -375,6 +376,7 @@ def sequence_probability(sequences, model):
 
                     dict_proba[seq_id] = 0.0
                     dict_log_proba[seq_id] = float("-inf")
+                    break
 
                 log_proba += math.log10(residue_proba)
 
