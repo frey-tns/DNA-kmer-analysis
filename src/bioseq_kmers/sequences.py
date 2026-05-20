@@ -70,7 +70,7 @@ def read_fasta(file_path):
         total_length: total length of sequence (Integer)
         seq_number: number of sequences (Integer)
     """
-    # Normalise 
+    # Normalise
     file_path = Path(file_path)
 
     # Did file path already exist
