@@ -81,26 +81,36 @@ EXAMPLES
 
     Count mode : compute occurrences and relative frequency of each k-mer
 
-    kmer-analysis -i data/seq/yeast_MET_upstream.fasta  -\\
-        k 6 -s both \\
-        --return occ,obs_freq \\
-        -o results/yeast_MET_upstream_6nt_2str.tsv
+        kmer-analysis -i data/seq/yeast_MET_upstream.fasta  -\\
+            k 6 -s both \\
+            --return occ,obs_freq \\
+            -o results/yeast_MET_upstream_6nt_2str.tsv
 
     Enrichment mode : detect over-represented k-mers relative to a
     user-specified background model.
 
-    # Analyse 6-mers with a Bernoulli model (Markov model of order 0
-    kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
-        -k 6 -s both --bernoulli \\
-        --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
-        -o results/yeast_MET_upstream_6nt_2str_mkv0_enriched.tsv
+        # Analyse 6-mers with a Bernoulli model (Markov model of order 0)
+        # whose parameters are estimated from input sequences
+        kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
+            -k 6 -s both --bernoulli \\
+            --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
+            -o results/yeast_MET_upstream_6nt_2str_mkv0_enriched.tsv
 
-    # Analyse 6-mers with Markov model of order 5 provided as a transition matrix
-    kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
-        -k 6 -s both \\
-        --background data/bg-models/yeast_all-upstream-noorf_Markov_mkv5.tsv \\
-        --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
-        -o results/yeast_MET_upstream_6nt_2str_mkv5_enriched.tsv
+        # Analyse 6-mers with Markov model of order 4
+        # whose parameters are estimated from input sequences
+        kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
+            -k 6 -s both -m 4 \\
+            --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
+            -o results/yeast_MET_upstream_6nt_2str_bg-input_mkv4_enriched.tsv
+
+
+        # Analyse 6-mers with Markov model of order 4
+        # provided as a transition matrix
+        kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
+            -k 6 -s both \\
+            --background data/bg-models/yeast_all-upstream-noorf_Markov_mkv4.tsv \\
+            --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
+            -o results/yeast_MET_upstream_6nt_2str_bg-allup-noorf_mkv5_enriched.tsv
 
 
 AUTHOR / CREDITS
@@ -368,7 +378,7 @@ def main():
         # Memory tracking
         tracemalloc.start()
 
-    # Bg model choose
+    # Bg model choice
     elif args.markov_order is not None:
         background_model = "markov"
         bg_order = args.markov_order
@@ -384,16 +394,22 @@ def main():
     # Define variable to use the value in the script
     input_file = args.input
     kmer_length = args.kmer_length
+    markov_order = args.markov_order
     output_file = args.output
     strand_mode = args.strand
     requested_fields = parse_return_option(args.return_fields)
+
+    ## CONDITION: m < k-1
+    if markov_order > kmer_length -2:
+        raise ValueError(f"Markov order (m={markov_order}) is incompatible with k-mer length (k={kmer_length}). Should be m < k-1. ")
 
     fields_compute = resolve_dependencies(requested_fields)
 
     # Fields requiring a background model
     need_background = any(field in fields_compute for field in ["exp_freq", "exp_occ", "occ_P", "occ_E", "occ_sig"])
 
-    ## CONDITION : does the files already exist ?
+
+    ## CONDITION: does the files already exist ?
 
     # Extract the folder from the full path
     folder = os.path.dirname(output_file)
