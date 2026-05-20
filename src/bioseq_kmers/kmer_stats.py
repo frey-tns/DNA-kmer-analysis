@@ -261,14 +261,15 @@ def poisson_statistics(occ, exp_occ, nb_test):
         "occ_sig": log10(e_value) (float)}
 
     """
+    # log10 P-value
     log_p = poisson.logsf(occ - 1, exp_occ) / math.log(10)
 
     # log10 E-value
     log_e = log_p + math.log10(nb_test)
 
-    # significance RSAT-style
+    # significance
     sig = -log_e
-    # formatting SAFE
+    # formatting
     p_ing = utils.engineer_mode(log_p)
     e_ing = utils.engineer_mode(log_e)
 
