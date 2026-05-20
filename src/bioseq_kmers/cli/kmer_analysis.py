@@ -89,17 +89,19 @@ EXAMPLES
     Enrichment mode : detect over-represented k-mers relative to a
     user-specified background model.
 
+    # Analyse 6-mers with a Bernoulli model (Markov model of order 0
+    kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
+        -k 6 -s both --bernoulli \\
+        --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
+        -o results/yeast_MET_upstream_6nt_2str_mkv0_enriched.tsv
+
+    # Analyse 6-mers with Markov model of order 5 provided as a transition matrix
     kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
         -k 6 -s both \\
         --background data/bg-models/yeast_all-upstream-noorf_Markov_mkv5.tsv \\
         --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
         -o results/yeast_MET_upstream_6nt_2str_mkv5_enriched.tsv
 
-    kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
-        -k 6 -s both \\
-        --background data/bg-models/yeast_all-upstream-noorf_Markov_mkv0.tsv \\
-        --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
-        -o results/yeast_MET_upstream_6nt_2str_mkv0_enriched.tsv
 
 AUTHOR / CREDITS
     Anouk RISCH
@@ -341,8 +343,8 @@ def main():
                         help = "Comma-separated list of fields to return. Default: occ,freq. Supported values: occ,obs_freq,exp_occ,exp_freq")
 
     parser.add_argument("--memory-usage",
-                        required=False,
-                        help="Measure memory usage with tracemalloc")
+                        action="store_true",
+                        help="Measure memory usage with tracemalloc. Beware : should be used only for tests, because it slows down the computation. ")
 
 
     # Reads the command typed in the terminal
