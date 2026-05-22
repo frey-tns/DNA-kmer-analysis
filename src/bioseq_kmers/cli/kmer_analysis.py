@@ -333,7 +333,6 @@ def main():
     parser.add_argument("-m", "--markov-order",
                         type=int,
                         metavar="ORDER",
-                        required=True,
                         help="Markov order of k-mer sequences")
 
     parser.add_argument("-o", "--output",
@@ -360,18 +359,11 @@ def main():
     args = parser.parse_args()
 
     # Warning message for markov-order/bernoulli option when matrix transition is used
-    if args.background and (args.bernoulli or args.markov_order is not None):
-        warnings.warn(f"\nOptions --bernoulli and --markov-order are ignored \n"
+    if args.background and args.markov_order is not None:
+        warnings.warn(f"\nOptions --markov-order are ignored \n"
                       f"when --background is provided because the background model \n"
                       f"is already defined in the transition matrix.\n",
                        UserWarning)
-
-    if args.background:
-        background_model = "background"
-
-    else:
-        background_model = "markov"
-        bg_order = args.markov_order
 
     if args.memory_usage:
         # Memory tracking
@@ -385,10 +377,6 @@ def main():
     output_file = args.output
     strand_mode = args.strand
     requested_fields = parse_return_option(args.return_fields)
-
-    ## CONDITION: m < k-1
-    if markov_order is not None and markov_order > kmer_length -2:
-        raise ValueError(f"Markov order (m={markov_order}) is incompatible with k-mer length (k={kmer_length}). Should be m < k-1. ")
 
     fields_compute = resolve_dependencies(requested_fields)
 
@@ -424,11 +412,18 @@ def main():
 
     if need_background:
 
-        # Load background model
-        if background_model == "background":
+        if args.background:
+
             model = bg.load_markov_matrix(args.background)
+            bg_order = model["order"]
 
         else:
+            if args.markov_order is None:
+                raise ValueError(f"A background model is required to compute "
+                                 f"expected frequencies or statistics. "
+                                 f"Please provide --markov-order or --background")
+
+            bg_order = args.markov_order
             # Extract information from markov_model (matrix)
             matrix, total_all, context_counts = bg.markov_model(sequences, bg_order)
 
@@ -439,6 +434,10 @@ def main():
             model = {"matrix": matrix,
                      "prefixes_prob": prefixes_prob,
                      "order": bg_order}
+
+    ## CONDITION: m < k-1
+    if markov_order is not None and bg_order > kmer_length -2:
+        raise ValueError(f"Markov order (m={markov_order}) is incompatible with k-mer length (k={kmer_length}). Should be m < k-1. ")
 
     observed_kmer_count = kmers.counts_kmer(sequences, kmer_length, strand_mode)
     # Number of k-mers tested for significance (T from e-value)
