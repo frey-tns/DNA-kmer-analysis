@@ -418,10 +418,15 @@ def sequence_probability(sequences, model):
             residue_proba = matrix[prefix].get(base, 0.0)
 
             if residue_proba == 0:
+                log_proba = float("-inf")
+                break
+
+            log_proba += math.log10(residue_proba)
+
+            if log_proba == float("-inf"):
                 dict_proba[seq_id] = 0.0
                 dict_log_proba[seq_id] = float("-inf")
 
-            log_proba += math.log10(residue_proba)
 
 #        scientific_prob = utils.engineer_mode(log_proba)
 
