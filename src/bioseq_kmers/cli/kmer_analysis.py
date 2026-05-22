@@ -524,6 +524,8 @@ def main():
         # Stockage in list oligomers
         result_analysis.append(row)
 
+        result_analysis.sort(key=lambda row: row["seq"])
+
     #####################
     #   Output file     #
     #####################
