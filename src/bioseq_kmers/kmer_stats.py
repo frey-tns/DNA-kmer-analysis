@@ -245,31 +245,43 @@ def nucleotide_frequencies(sequences):
 ###################################
 #   Function: Poisson statistic   #
 ###################################
-def poisson_statistics(occ, exp_occ, nb_test):
+def poisson_statistics(occ, exp_occ, nb_tests):
     """
         Compute over-representation statistics using a Poisson model.
 
+        The P-value is defined as P = P(X ≥ occ),
+        where occ is the observed number of occurrences
+
+        The E-value is computed as E = P * T,
+        where T is the number of tests in a multi-testing configuration.
+        In this case, this corresponds to the number of k-mers tested for significance.
+
+        The significance
+
     Args:
-        occ (int): Number of observed k-mer occurrences.
-        exp_occ (float): Number of expected k-mer occurrences.
-        nb_test (int): Number of k-mers tested for significance.
+        occ (int): observed number of k-mer occurrences
+        exp_occ (float): expected number of k-mer occurrences, used as lambda parameter for the Poisson distribution.
+        nb_tests (int): Number of k-mers tested for significance, used for the multi-testing correction.
 
     Returns:
         dict: Dictionary of over-representation statistics
-        {"occ_P": p_value (float),
-        "occ_E": e_value (float),
-        "occ_sig": log10(e_value) (float)}
+        {"occ_P": P-value (float),
+        "occ_E": E-value (float),
+        "occ_sig": -log10(E-vamie) (float)}
 
     """
     # log10 P-value
-    log_p = poisson.logsf(occ - 1, exp_occ) / math.log(10)
+    occ_P = poisson.sf(occ -1, exp_occ)
 
     # log10 E-value
-    log_e = log_p + math.log10(nb_test)
+    occ_E = occ_P * nb_tests
 
     # significance
-    sig = -log_e
+    if occ_E == 0:
+        occ_sig = 320
+    else:
+        occ_sig = -math.log10(occ_E)
 
-    return {"occ_P": log_p,
-            "occ_E": log_e,
-            "occ_sig": round(sig, 3)}
+    return {"occ_P": occ_P,
+            "occ_E": occ_E,
+            "occ_sig": round(occ_sig, 3)}
