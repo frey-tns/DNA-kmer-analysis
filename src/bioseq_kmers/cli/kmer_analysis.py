@@ -330,17 +330,11 @@ def main():
                         type=min_interger(1),
                         help="Length of k-mer sequence (1-10)")
 
-    # Mutually exclusive background model options
-    bg_group = parser.add_mutually_exclusive_group()
-
-    bg_group.add_argument("-b", "--bernoulli",
-                          action="store_true",
-                          help="Bernoulli probability distribution")
-
-    bg_group.add_argument("-m", "--markov-order",
-                          type=min_interger(1),
-                          metavar="ORDER",
-                          help="Markov order of k-mer sequences")
+    parser.add_argument("-m", "--markov-order",
+                        type=int,
+                        metavar="ORDER",
+                        required=True,
+                        help="Markov order of k-mer sequences")
 
     parser.add_argument("-o", "--output",
                         required=True,
@@ -374,22 +368,15 @@ def main():
 
     if args.background:
         background_model = "background"
+
+    else:
+        background_model = "markov"
+        bg_order = args.markov_order
+
     if args.memory_usage:
         # Memory tracking
         tracemalloc.start()
 
-    # Bg model choice
-    elif args.markov_order is not None:
-        background_model = "markov"
-        bg_order = args.markov_order
-
-    elif args.bernoulli:
-        background_model = "bernoulli"
-        bg_order = 0
-    else:
-        # If no argument Bernoulli by default
-        background_model = "bernoulli"
-        bg_order = 0
 
     # Define variable to use the value in the script
     input_file = args.input
