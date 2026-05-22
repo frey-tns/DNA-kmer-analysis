@@ -92,10 +92,27 @@ def test_nucleotide_frequencies_sum_to_one():
 @pytest.mark.parametrize("lam", [10, 20, 50, 3000])
 def test_poisson_statistics_lambda(lam):
     occ = 10
-    nb_test = 1000
+    nb_tests = 1000
 
-    stats = stat.poisson_statistics(occ, lam, nb_test)
+    stats = stat.poisson_statistics(occ, lam, nb_tests)
 
-    assert math.isfinite(stats["occ_P"])
-    assert math.isclose(stats["occ_E"], stats["occ_P"] + math.log10(nb_test))
-    assert round(stats["occ_sig"], 3) == round(-stats["occ_E"], 3)
+    assert math.isclose(stats["occ_E"], stats["occ_P"] * nb_tests)
+    assert round(stats["occ_sig"], 3) == round(-math.log10(stats["occ_E"]), 3)
+
+
+@pytest.mark.parametrize(("occ", "occ_sig"),
+                         [(10, 3.953),
+                          (50, 61.909),
+                          (100, 155.400),
+                          (150, 260.188),
+                          (160, 282.105),
+                          (170, 304.293),
+                          (180, 320)])
+def test_poisson_statistics_lambda(occ, occ_sig):
+    lam = 1
+    nb_tests = 1000
+
+    stats = stat.poisson_statistics(occ, lam, nb_tests)
+
+    assert round(stats["occ_sig"], 3) == occ_sig
+
