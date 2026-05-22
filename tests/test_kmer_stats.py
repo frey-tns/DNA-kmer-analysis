@@ -108,7 +108,7 @@ def test_poisson_statistics_lambda(lam):
                           (160, 282.105),
                           (170, 304.293),
                           (180, 320)])
-def test_poisson_statistics_lambda(occ, occ_sig):
+def test_poisson_statistics_occ_series(occ, occ_sig):
     lam = 1
     nb_tests = 1000
 
