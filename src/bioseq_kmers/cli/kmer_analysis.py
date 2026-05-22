@@ -400,7 +400,7 @@ def main():
     requested_fields = parse_return_option(args.return_fields)
 
     ## CONDITION: m < k-1
-    if markov_order > kmer_length -2:
+    if markov_order is not None and markov_order > kmer_length -2:
         raise ValueError(f"Markov order (m={markov_order}) is incompatible with k-mer length (k={kmer_length}). Should be m < k-1. ")
 
     fields_compute = resolve_dependencies(requested_fields)
