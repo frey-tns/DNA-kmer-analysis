@@ -526,7 +526,7 @@ def main():
 
         if any(f in fields_compute for f in ["occ_P", "occ_E", "occ_sig"]):
 
-            stats = kmers.poisson_statistics(occ=occ,exp_occ=row["exp_occ"], nb_test=nb_test)
+            stats = kmers.poisson_statistics(occ=occ, exp_occ=row["exp_occ"], nb_tests=nb_test)
 
             # Merge dictionary into row
             row.update(stats)

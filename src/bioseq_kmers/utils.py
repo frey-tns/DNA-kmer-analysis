@@ -91,6 +91,13 @@ def engineer_mode(log10_value, precision=3):
     Convert a log10 probability into scientific notation string
 
     """
+    # handle infinities
+    if log10_value == float("-inf"):
+        return "-inf"
+
+    if math.isnan(log10_value):
+        return "nan"
+
     exponent = math.floor(log10_value)
     mantissa = 10 ** (log10_value - exponent)
 

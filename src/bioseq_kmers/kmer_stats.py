@@ -75,6 +75,8 @@ from collections import Counter
 # Poisson stat
 from scipy.stats import poisson
 
+import bioseq_kmers.utils as utils
+
 ################################################################
 ## CONSTANTS
 ################################################################
@@ -243,39 +245,43 @@ def nucleotide_frequencies(sequences):
 ###################################
 #   Function: Poisson statistic   #
 ###################################
-def poisson_statistics(occ, exp_occ, nb_test):
+def poisson_statistics(occ, exp_occ, nb_tests):
     """
         Compute over-representation statistics using a Poisson model.
 
+        The P-value is defined as P = P(X ≥ occ),
+        where occ is the observed number of occurrences
+
+        The E-value is computed as E = P * T,
+        where T is the number of tests in a multi-testing configuration.
+        In this case, this corresponds to the number of k-mers tested for significance.
+
+        The significance
+
     Args:
-        occ (int): Number of observed k-mer occurrences.
-        exp_occ (float): Number of expected k-mer occurrences.
-        nb_test (int): Number of k-mers tested for significance.
+        occ (int): observed number of k-mer occurrences
+        exp_occ (float): expected number of k-mer occurrences, used as lambda parameter for the Poisson distribution.
+        nb_tests (int): Number of k-mers tested for significance, used for the multi-testing correction.
 
     Returns:
         dict: Dictionary of over-representation statistics
-        {"occ_P": p_value (float),
-        "occ_E": e_value (float),
-        "occ_sig": log10(e_value) (float)}
+        {"occ_P": P-value (float),
+        "occ_E": E-value (float),
+        "occ_sig": -log10(E-vamie) (float)}
 
     """
-    # Special case
-    if exp_occ <= 0:
-        return {"occ_P": 1.0,
-                "occ_E": 0.0,
-                "occ_sig": 0.0}
+    # log10 P-value
+    occ_P = poisson.sf(occ -1, exp_occ)
 
-    # P-value P(X >= x)
-    p_value = poisson.sf(occ - 1, exp_occ)
-    e_value = p_value * nb_test
+    # log10 E-value
+    occ_E = occ_P * nb_tests
 
-    # Avoid log10(0)
-    if p_value <= 0:
-        sig = float("inf")
+    # significance
+    if occ_E == 0:
+        occ_sig = 320
     else:
-        # Significance = log10(e_value)
-        sig = -math.log10(e_value)
+        occ_sig = -math.log10(occ_E)
 
-    return {"occ_P": p_value,
-            "occ_E": e_value,
-            "occ_sig": f"{sig:.3f}"}
+    return {"occ_P": occ_P,
+            "occ_E": occ_E,
+            "occ_sig": round(occ_sig, 3)}
