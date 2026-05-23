@@ -42,6 +42,7 @@ def test_kmer_analysis_markov_from_bgfiles(markov_order):
         "--background", background_model,
         "--return",
         "occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig",
+        "--sort", "sig",
         "-o", str(output_tsv),
     ]
 
