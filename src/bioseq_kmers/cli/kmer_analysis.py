@@ -81,8 +81,8 @@ EXAMPLES
 
     Count mode : compute occurrences and relative frequency of each k-mer
 
-        kmer-analysis -i data/seq/yeast_MET_upstream.fasta  -\\
-            k 6 -s both \\
+        kmer-analysis -i data/seq/yeast_MET_upstream.fasta  \\
+            -k 6 -s both \\
             --return occ,obs_freq \\
             -o results/yeast_MET_upstream_6nt_2str.tsv
 
@@ -92,7 +92,7 @@ EXAMPLES
         # Analyse 6-mers with a Bernoulli model (Markov model of order 0)
         # whose parameters are estimated from input sequences
         kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
-            -k 6 -s both --bernoulli \\
+            -k 6 -s both --markov-order 0 \\
             --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
             -o results/yeast_MET_upstream_6nt_2str_mkv0_enriched.tsv
 
@@ -104,11 +104,12 @@ EXAMPLES
             -o results/yeast_MET_upstream_6nt_2str_bg-input_mkv4_enriched.tsv
 
 
-        # Analyse 6-mers with Markov model of order 4
+        # Analyse 6-mers with Markov model of order 5
+        # trained on all the yeast upstream non-coding sequences
         # provided as a transition matrix
         kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
             -k 6 -s both \\
-            --background data/bg-models/yeast_all-upstream-noorf_Markov_mkv4.tsv \\
+            --background data/bg-models/yeast_all-upstream-noorf_Markov_mkv5.tsv \\
             --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
             -o results/yeast_MET_upstream_6nt_2str_bg-allup-noorf_mkv5_enriched.tsv
 
@@ -359,8 +360,13 @@ def main():
     args = parser.parse_args()
 
     # Warning message for markov-order/bernoulli option when matrix transition is used
+<<<<<<< HEAD
     if args.background and args.markov_order is not None:
         warnings.warn(f"\nOptions --markov-order are ignored \n"
+=======
+    if args.background and (args.bernoulli or args.markov_order is not None):
+        warnings.warn(f"\nOption --markov-order are ignored \n"
+>>>>>>> 58-replace-option---bernoulli-by---marko
                       f"when --background is provided because the background model \n"
                       f"is already defined in the transition matrix.\n",
                        UserWarning)
