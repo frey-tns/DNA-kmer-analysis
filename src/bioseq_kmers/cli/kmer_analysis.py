@@ -81,8 +81,8 @@ EXAMPLES
 
     Count mode : compute occurrences and relative frequency of each k-mer
 
-        kmer-analysis -i data/seq/yeast_MET_upstream.fasta  -\\
-            k 6 -s both \\
+        kmer-analysis -i data/seq/yeast_MET_upstream.fasta  \\
+            -k 6 -s both \\
             --return occ,obs_freq \\
             -o results/yeast_MET_upstream_6nt_2str.tsv
 
@@ -92,7 +92,7 @@ EXAMPLES
         # Analyse 6-mers with a Bernoulli model (Markov model of order 0)
         # whose parameters are estimated from input sequences
         kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
-            -k 6 -s both --bernoulli \\
+            -k 6 -s both --markov-order 0 \\
             --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
             -o results/yeast_MET_upstream_6nt_2str_mkv0_enriched.tsv
 
@@ -104,11 +104,12 @@ EXAMPLES
             -o results/yeast_MET_upstream_6nt_2str_bg-input_mkv4_enriched.tsv
 
 
-        # Analyse 6-mers with Markov model of order 4
+        # Analyse 6-mers with Markov model of order 5
+        # trained on all the yeast upstream non-coding sequences
         # provided as a transition matrix
         kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
             -k 6 -s both \\
-            --background data/bg-models/yeast_all-upstream-noorf_Markov_mkv4.tsv \\
+            --background data/bg-models/yeast_all-upstream-noorf_Markov_mkv5.tsv \\
             --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
             -o results/yeast_MET_upstream_6nt_2str_bg-allup-noorf_mkv5_enriched.tsv
 
@@ -330,17 +331,10 @@ def main():
                         type=min_interger(1),
                         help="Length of k-mer sequence (1-10)")
 
-    # Mutually exclusive background model options
-    bg_group = parser.add_mutually_exclusive_group()
-
-    bg_group.add_argument("-b", "--bernoulli",
-                          action="store_true",
-                          help="Bernoulli probability distribution")
-
-    bg_group.add_argument("-m", "--markov-order",
-                          type=min_interger(1),
-                          metavar="ORDER",
-                          help="Markov order of k-mer sequences")
+    parser.add_argument("-m", "--markov-order",
+                        type=int,
+                        metavar="ORDER",
+                        help="Markov order of k-mer sequences")
 
     parser.add_argument("-o", "--output",
                         required=True,
@@ -366,30 +360,16 @@ def main():
     args = parser.parse_args()
 
     # Warning message for markov-order/bernoulli option when matrix transition is used
-    if args.background and (args.bernoulli or args.markov_order is not None):
-        warnings.warn(f"\nOptions --bernoulli and --markov-order are ignored \n"
+    if args.background and args.markov_order is not None:
+        warnings.warn(f"\nOptions --markov-order are ignored \n"
                       f"when --background is provided because the background model \n"
                       f"is already defined in the transition matrix.\n",
                        UserWarning)
 
-    if args.background:
-        background_model = "background"
     if args.memory_usage:
         # Memory tracking
         tracemalloc.start()
 
-    # Bg model choice
-    elif args.markov_order is not None:
-        background_model = "markov"
-        bg_order = args.markov_order
-
-    elif args.bernoulli:
-        background_model = "bernoulli"
-        bg_order = 0
-    else:
-        # If no argument Bernoulli by default
-        background_model = "bernoulli"
-        bg_order = 0
 
     # Define variable to use the value in the script
     input_file = args.input
@@ -398,10 +378,6 @@ def main():
     output_file = args.output
     strand_mode = args.strand
     requested_fields = parse_return_option(args.return_fields)
-
-    ## CONDITION: m < k-1
-    if markov_order is not None and markov_order > kmer_length -2:
-        raise ValueError(f"Markov order (m={markov_order}) is incompatible with k-mer length (k={kmer_length}). Should be m < k-1. ")
 
     fields_compute = resolve_dependencies(requested_fields)
 
@@ -437,11 +413,18 @@ def main():
 
     if need_background:
 
-        # Load background model
-        if background_model == "background":
+        if args.background:
+
             model = bg.load_markov_matrix(args.background)
+            bg_order = model["order"]
 
         else:
+            if args.markov_order is None:
+                raise ValueError(f"A background model is required to compute "
+                                 f"expected frequencies or statistics. "
+                                 f"Please provide --markov-order or --background")
+
+            bg_order = args.markov_order
             # Extract information from markov_model (matrix)
             matrix, total_all, context_counts = bg.markov_model(sequences, bg_order)
 
@@ -452,6 +435,10 @@ def main():
             model = {"matrix": matrix,
                      "prefixes_prob": prefixes_prob,
                      "order": bg_order}
+
+    ## CONDITION: m < k-1
+    if markov_order is not None and bg_order > kmer_length -2:
+        raise ValueError(f"Markov order (m={markov_order}) is incompatible with k-mer length (k={kmer_length}). Should be m < k-1. ")
 
     observed_kmer_count = kmers.counts_kmer(sequences, kmer_length, strand_mode)
     # Number of k-mers tested for significance (T from e-value)
