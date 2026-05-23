@@ -360,13 +360,8 @@ def main():
     args = parser.parse_args()
 
     # Warning message for markov-order/bernoulli option when matrix transition is used
-<<<<<<< HEAD
     if args.background and args.markov_order is not None:
         warnings.warn(f"\nOptions --markov-order are ignored \n"
-=======
-    if args.background and (args.bernoulli or args.markov_order is not None):
-        warnings.warn(f"\nOption --markov-order are ignored \n"
->>>>>>> 58-replace-option---bernoulli-by---marko
                       f"when --background is provided because the background model \n"
                       f"is already defined in the transition matrix.\n",
                        UserWarning)
