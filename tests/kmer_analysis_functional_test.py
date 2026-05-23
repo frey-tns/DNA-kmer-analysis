@@ -120,6 +120,7 @@ def test_kmer_analysis_markov_from_input(markov_order):
         "--markov-order", str(markov_order),
         "--return",
         "occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig",
+        "--sort", "sig",
         "-o", str(output_tsv),
     ]
 

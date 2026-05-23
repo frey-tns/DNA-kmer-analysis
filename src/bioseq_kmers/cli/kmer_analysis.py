@@ -355,6 +355,11 @@ def main():
                         action="store_true",
                         help="Measure memory usage with tracemalloc. Beware : should be used only for tests, because it slows down the computation. ")
 
+    parser.add_argument("--sort",
+                        choices=["alpha", "sig"],
+                        default="alpha",
+                        help="Sort output by k-mer alphabetically (alpha) or by significance (sig)")
+
 
     # Reads the command typed in the terminal
     args = parser.parse_args()
@@ -524,6 +529,13 @@ def main():
 
         # Stockage in list oligomers
         result_analysis.append(row)
+
+        if args.sort == "alpha":
+            result_analysis.sort(key=lambda r: r["seq"])
+
+        elif args.sort == "sig":
+            result_analysis.sort(key=lambda r: r["occ_sig"], reverse=True)
+
 
     #####################
     #   Output file     #
