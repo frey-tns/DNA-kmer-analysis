@@ -79,11 +79,40 @@ Column contents :
 
 EXAMPLES
 
-    kmer-analysis -i data/seq/yeast_MET_upstream.fasta  -k 6 -s both -o results/yeast_MET_upstream_6nt_2str.tsv
+    Count mode : compute occurrences and relative frequency of each k-mer
 
-    kmer-analysis -i data/seq/yeast_MET_upstream.fasta  -k 6 -s both \\
-        --return occ,obs_freq,exp_occ,exp_freq \\
-        -o results/yeast_MET_upstream_6nt_2str.tsv
+        kmer-analysis -i data/seq/yeast_MET_upstream.fasta  \\
+            -k 6 -s both \\
+            --return occ,obs_freq \\
+            -o results/yeast_MET_upstream_6nt_2str.tsv
+
+    Enrichment mode : detect over-represented k-mers relative to a
+    user-specified background model.
+
+        # Analyse 6-mers with a Bernoulli model (Markov model of order 0)
+        # whose parameters are estimated from input sequences
+        kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
+            -k 6 -s both --markov-order 0 \\
+            --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
+            -o results/yeast_MET_upstream_6nt_2str_mkv0_enriched.tsv
+
+        # Analyse 6-mers with Markov model of order 4
+        # whose parameters are estimated from input sequences
+        kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
+            -k 6 -s both -m 4 \\
+            --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
+            -o results/yeast_MET_upstream_6nt_2str_bg-input_mkv4_enriched.tsv
+
+
+        # Analyse 6-mers with Markov model of order 5
+        # trained on all the yeast upstream non-coding sequences
+        # provided as a transition matrix
+        kmer-analysis -i data/seq/yeast_MET_upstream.fasta \\
+            -k 6 -s both \\
+            --background data/bg-models/yeast_all-upstream-noorf_Markov_mkv5.tsv \\
+            --return occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig \\
+            -o results/yeast_MET_upstream_6nt_2str_bg-allup-noorf_mkv5_enriched.tsv
+
 
 AUTHOR / CREDITS
     Anouk RISCH
@@ -109,7 +138,9 @@ import os
 # For Benchmark
 import time
 import datetime
+import tracemalloc
 import sys
+import warnings
 
 # Coloring warning text
 from colorama import init, Fore
@@ -136,8 +167,11 @@ _DEFAULT_FIELDS = ["occ", "obs_freq"]
 
 # Dependencies between dictionaries
 _DICT_DEPENDENCIES = {"obs_freq" : ["occ"],
-                     "exp_occ" : ["exp_freq"],
-                     "exp_freq" : []}
+                      "exp_occ" : ["exp_freq"],
+                      "exp_freq" : [],
+                      "occ_P": ["occ", "exp_occ"],
+                      "occ_E": ["occ_P"],
+                      "occ_sig": ["occ_P", "occ_E"]}
 
 ################################################################
 ## FUNCTIONS
@@ -267,6 +301,7 @@ def main():
 
     # Time tracking (Benchmark)
     start_time = time.perf_counter()
+
     # Job started
     start_time_date = datetime.datetime.now()
 
@@ -277,20 +312,29 @@ def main():
     ## OUTPUT DIRECTORY FILE
 
     # Specify which command-line options the program is willing to accept
-    parser = argparse.ArgumentParser(description="k-mer analysis")
+#    parser = argparse.ArgumentParser(description="k-mer analysis")
+    # Print a detailed description from the pydoc
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
     # Define args used by the user (here output path)
     parser.add_argument("-i", "--input",
                         required=True,
                         help="Path to the input fasta file")
+
+    parser.add_argument("--background",
+                        required=False,
+                        help="Transition Matrix of background model")
 
     parser.add_argument("-k", "--kmer-length",
                         required=True,
                         type=min_interger(1),
                         help="Length of k-mer sequence (1-10)")
 
-    parser.add_argument("-bg", "--bg-order",
-                        required=False,
-                        help="Estimate background Markov model of given order from input sequences")
+    parser.add_argument("-m", "--markov-order",
+                        type=int,
+                        metavar="ORDER",
+                        help="Markov order of k-mer sequences")
 
     parser.add_argument("-o", "--output",
                         required=True,
@@ -307,19 +351,46 @@ def main():
                         default = None,
                         help = "Comma-separated list of fields to return. Default: occ,freq. Supported values: occ,obs_freq,exp_occ,exp_freq")
 
+    parser.add_argument("--memory-usage",
+                        action="store_true",
+                        help="Measure memory usage with tracemalloc. Beware : should be used only for tests, because it slows down the computation. ")
+
+    parser.add_argument("--sort",
+                        choices=["alpha", "sig"],
+                        default="alpha",
+                        help="Sort output by k-mer alphabetically (alpha) or by significance (sig)")
+
+
     # Reads the command typed in the terminal
     args = parser.parse_args()
+
+    # Warning message for markov-order/bernoulli option when matrix transition is used
+    if args.background and args.markov_order is not None:
+        warnings.warn(f"\nOptions --markov-order are ignored \n"
+                      f"when --background is provided because the background model \n"
+                      f"is already defined in the transition matrix.\n",
+                       UserWarning)
+
+    if args.memory_usage:
+        # Memory tracking
+        tracemalloc.start()
+
 
     # Define variable to use the value in the script
     input_file = args.input
     kmer_length = args.kmer_length
+    markov_order = args.markov_order
     output_file = args.output
     strand_mode = args.strand
     requested_fields = parse_return_option(args.return_fields)
 
     fields_compute = resolve_dependencies(requested_fields)
 
-    ## CONDITION : does the files already exist ?
+    # Fields requiring a background model
+    need_background = any(field in fields_compute for field in ["exp_freq", "exp_occ", "occ_P", "occ_E", "occ_sig"])
+
+
+    ## CONDITION: does the files already exist ?
 
     # Extract the folder from the full path
     folder = os.path.dirname(output_file)
@@ -337,29 +408,56 @@ def main():
     # Input URL of the FASTA file
     fasta_file = input_file
 
+    # Extract information from read_fasta (sequence, length, number of seq)
     sequences, total_length, seq_number = seq.read_fasta(fasta_file)
 
     ###################
     #    Statistics   #
     ###################
-
     model = None
 
-    if args.bg_order is not None:
-        matrix, total_all, context_counts = bg.markov_model(sequences, args.bg_order)
+    if need_background:
 
-        prefixes_prob = {prefix: context_counts[prefix] / total_all for prefix in context_counts.keys()}
+        if args.background:
 
-        model = {"matrix": matrix,
-                 "prefixes_prob": prefixes_prob,
-                 "order": args.bg_order}
+            model = bg.load_markov_matrix(args.background)
+            bg_order = model["order"]
 
-    # Nucleotides frequency
-    frequencies = kmers.nucleotide_frequencies(sequences)
+        else:
+            if args.markov_order is None:
+                raise ValueError(f"A background model is required to compute "
+                                 f"expected frequencies or statistics. "
+                                 f"Please provide --markov-order or --background")
+
+            bg_order = args.markov_order
+            # Extract information from markov_model (matrix)
+            matrix, total_all, context_counts = bg.markov_model(sequences, bg_order)
+
+            # Transforms the number of occurrences into P(prefix)
+            prefixes_prob = {prefix: context_counts[prefix] / total_all for prefix in context_counts.keys()}
+
+            # Construction of the Markov model
+            model = {"matrix": matrix,
+                     "prefixes_prob": prefixes_prob,
+                     "order": bg_order}
+
+    ## CONDITION: m < k-1
+    if markov_order is not None and bg_order > kmer_length -2:
+        raise ValueError(f"Markov order (m={markov_order}) is incompatible with k-mer length (k={kmer_length}). Should be m < k-1. ")
 
     observed_kmer_count = kmers.counts_kmer(sequences, kmer_length, strand_mode)
+    # Number of k-mers tested for significance (T from e-value)
+    nb_test = len(observed_kmer_count)
     # Number of all positions T = L - K + 1
     total_positions = sum(len(seq) - kmer_length + 1 for seq in sequences.values())
+
+    ## Expected k-mer probabilities (once)
+    all_exp_freq_dict = {}
+
+    if need_background:
+        all_kmers = {kmer: kmer for kmer in observed_kmer_count}
+
+        all_exp_freq_dict, _ = bg.sequence_probability(all_kmers,model)
 
     # List who contain output results
     result_analysis = []
@@ -403,10 +501,7 @@ def main():
 
         # Expected frequencies
         if "exp_freq" in fields_compute:
-            if model is not None:
-                exp_freq = bg.sequence_probability(canon_kmer, model)
-            else:
-                exp_freq = bg.expected_frequencies(canon_kmer, frequencies)
+            exp_freq = all_exp_freq_dict[canon_kmer]
             row["exp_freq"] = exp_freq
 
         # Expected occurrences
@@ -414,12 +509,19 @@ def main():
             # Checks if exp_freq has already been calculated
             if "exp_freq" not in row:
                 # exp_freq does not yet exist
-                exp_freq = bg.expected_frequencies(canon_kmer, frequencies)
+                exp_freq = all_exp_freq_dict[canon_kmer]
             else:
                 # exp_freq already exists
                 exp_freq = row["exp_freq"]
 
             row["exp_occ"] = total_positions * exp_freq
+
+        if any(f in fields_compute for f in ["occ_P", "occ_E", "occ_sig"]):
+
+            stats = kmers.poisson_statistics(occ=occ, exp_occ=row["exp_occ"], nb_tests=nb_test)
+
+            # Merge dictionary into row
+            row.update(stats)
 
         # Observed frequencies
         if "obs_freq" in fields_compute:
@@ -428,28 +530,31 @@ def main():
         # Stockage in list oligomers
         result_analysis.append(row)
 
+        if args.sort == "alpha":
+            result_analysis.sort(key=lambda r: r["seq"])
+
+        elif args.sort == "sig":
+            result_analysis.sort(key=lambda r: r["occ_sig"], reverse=True)
+
+
     #####################
     #   Output file     #
     #####################
 
     # Current date
     today = str(datetime.date.today()).replace("-", "_")
-    # # Create DataFrame
-    # df = pd.DataFrame(result_analysis, columns=["seq", "id", "exp_freq", "exp_occ"])
-    # # Convert DataFrame into HTML format
-    # df_HTML = df.to_html(escape=False, index=False)
 
     # If the output path is a folder
     if os.path.isdir(output_file):
         # Define output path
         output_path = os.path.join(output_file,f"summary_kmer_analysis_{today}.tsv")
     else:
-        # Force the HTML extension
+        # Force the TSV extension
         if not output_file.endswith(".tsv"):
             output_file += ".tsv"
         # If it's a file
         output_path = output_file
-    # Write HTML file output
+    # Write TSV file output
     with open(output_path, "w") as tsv_file:
 
         ## Parameter
@@ -482,7 +587,10 @@ def main():
                        f"; exp_freq\t expected relative frequency\n"
                        f"; obs_freq\t observed relative frequency\n"
                        f"; occ\t observed occurrences\n"
-                       f"; exp_occ\t expected occurrences\n;\n")
+                       f"; exp_occ\t expected occurrences\n"
+                       f"; occ_P\t occurrence probability\n"
+                       f"; occ_E\t E-value for occurrence\n"
+                       f"; occ_sig\t occurrence significance\n;\n")
 
         # Kmer analysis table headers
         column = ["seq","id"] + requested_fields
@@ -514,6 +622,15 @@ def main():
 
         # End time
         end_time = time.perf_counter()
+
+        if args.memory_usage:
+            # Memory usage
+            current_memory, peak_memory = tracemalloc.get_traced_memory()
+            # End memory tracking
+            tracemalloc.stop()
+            # Convert
+            peak_memory_mb = peak_memory / (1024 ** 2)
+
         # Job ending
         end_time_date = datetime.datetime.now()
         duration = end_time - start_time
@@ -522,8 +639,14 @@ def main():
                        f"; Job done\t{end_time_date}\n"
                        f"; Job duration\t{duration:.3f} seconds\n")
 
+        if args.memory_usage:
+            tsv_file.write(f"; Peak memory\t{peak_memory_mb:.2f} MB\n")
+
     print(f"{Fore.GREEN}Output written to {output_path}")
-    print(f"{Fore.CYAN}Duration : {duration:.3f} seconds\n")
+    print(f"{Fore.CYAN}Duration : {duration:.3f} seconds")
+
+    if args.memory_usage:
+        print(f"{Fore.MAGENTA}Peak memory usage : {peak_memory_mb:.2f} MB")
 
 #####################
 #   Executing code  #

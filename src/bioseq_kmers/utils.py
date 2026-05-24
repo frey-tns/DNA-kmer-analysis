@@ -22,11 +22,15 @@ def format_command_line(argv):
     # Contains the rebuilt command
     list_cleaned_command = []
 
+    # Executable name only
+    program_name = os.path.basename(argv[0])
+    list_cleaned_command.append(shlex.quote(program_name))
+
     # The next argument is a file path
     skip_next = False
 
     # Iterates through each element of the order
-    for arg in argv:
+    for arg in argv[1:]:
 
         # If argument associated with -i or -o
         if skip_next:
@@ -87,6 +91,13 @@ def engineer_mode(log10_value, precision=3):
     Convert a log10 probability into scientific notation string
 
     """
+    # handle infinities
+    if log10_value == float("-inf"):
+        return "-inf"
+
+    if math.isnan(log10_value):
+        return "nan"
+
     exponent = math.floor(log10_value)
     mantissa = 10 ** (log10_value - exponent)
 

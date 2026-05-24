@@ -45,6 +45,7 @@ import gzip
 
 # progress bar
 from tqdm import tqdm
+from pathlib import Path
 
 #####################################################
 #    Function to read and give stat on Fasta file   #
@@ -69,6 +70,8 @@ def read_fasta(file_path):
         total_length: total length of sequence (Integer)
         seq_number: number of sequences (Integer)
     """
+    # Normalise
+    file_path = Path(file_path)
 
     # Did file path already exist
     if not os.path.exists(file_path):
@@ -81,7 +84,7 @@ def read_fasta(file_path):
     current_id = ""
 
     # Choose opener depending on extension
-    gzip_opener = gzip.open if file_path.lower().endswith(".gz") else open
+    gzip_opener = gzip.open if file_path.suffix == ".gz" else open
 
     with gzip_opener(file_path, "rt", encoding="utf-8") as fasta_file:
         line_count = 0 # line counter

@@ -66,10 +66,16 @@ VERSION
 #################
 #   Libraries   #
 #################
+import math
+
 # Progress bar
 from tqdm import tqdm
 # Count (cf k-mer count)
 from collections import Counter
+# Poisson stat
+from scipy.stats import poisson
+
+import bioseq_kmers.utils as utils
 
 ################################################################
 ## CONSTANTS
@@ -146,8 +152,7 @@ def canonic_kmer(kmer):
 #####################################
 #   Function : Count observed kmer  #
 #####################################
-
-def counts_kmer(sequence, k_length, strand_mode):
+def counts_kmer(sequence, k_length, strand_mode, desc="Counting k-mers"):
     """
     Count observed k-mers in a set of DNA sequences.
 
@@ -173,7 +178,7 @@ def counts_kmer(sequence, k_length, strand_mode):
     kmer_count = Counter()
 
     # Progress bar
-    for seq_fasta in tqdm(sequence.values(), desc="Counting k-mers"):
+    for seq_fasta in tqdm(sequence.values(), desc=desc):
        # Explore all possible positions
        for i_position in range(len(seq_fasta) - k_length + 1):
            # Extract kmer
@@ -236,3 +241,47 @@ def nucleotide_frequencies(sequences):
     frequencies = {base: counts[base] / total for base in "ATGC"}
 
     return frequencies
+
+###################################
+#   Function: Poisson statistic   #
+###################################
+def poisson_statistics(occ, exp_occ, nb_tests):
+    """
+        Compute over-representation statistics using a Poisson model.
+
+        The P-value is defined as P = P(X ≥ occ),
+        where occ is the observed number of occurrences
+
+        The E-value is computed as E = P * T,
+        where T is the number of tests in a multi-testing configuration.
+        In this case, this corresponds to the number of k-mers tested for significance.
+
+        The significance
+
+    Args:
+        occ (int): observed number of k-mer occurrences
+        exp_occ (float): expected number of k-mer occurrences, used as lambda parameter for the Poisson distribution.
+        nb_tests (int): Number of k-mers tested for significance, used for the multi-testing correction.
+
+    Returns:
+        dict: Dictionary of over-representation statistics
+        {"occ_P": P-value (float),
+        "occ_E": E-value (float),
+        "occ_sig": -log10(E-vamie) (float)}
+
+    """
+    # log10 P-value
+    occ_P = poisson.sf(occ -1, exp_occ)
+
+    # log10 E-value
+    occ_E = occ_P * nb_tests
+
+    # significance
+    if occ_E == 0:
+        occ_sig = 320
+    else:
+        occ_sig = -math.log10(occ_E)
+
+    return {"occ_P": occ_P,
+            "occ_E": occ_E,
+            "occ_sig": round(occ_sig, 3)}

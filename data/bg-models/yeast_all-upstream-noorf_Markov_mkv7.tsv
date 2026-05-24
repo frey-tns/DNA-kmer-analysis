@@ -1,7 +1,7 @@
-; markov-from-seq	/Users/jvanheld/no_backup/stage-M1_Anouk-Risch_2026/DNA-kmer-analysis/.venv/bin/markov-from-seq -i data/seq/yeast_all-upstream-noorf.fasta -m 7 -o data/bg-models/yeast_all-upstream-noorf_Markov_m7.tsv
+; markov-from-seq	/Users/jvanheld/no_backup/stage-M1_Anouk-Risch_2026/DNA-kmer-analysis/.venv/bin/markov-from-seq -i data/seq/yeast_all-upstream-noorf.fasta.gz -m 7 -o data/bg-models/yeast_all-upstream-noorf_Markov_mkv7.tsv
 ;
 ; Program version	0.1
-; Input file	data/seq/yeast_all-upstream-noorf.fasta
+; Input file	data/seq/yeast_all-upstream-noorf.fasta.gz
 #pr\su 	a	c	g	t	Sum	P_prefix
 aaaaaaa	0.65118	0.06310	0.13873	0.14700	1	0.0034
 aaaaaac	0.39166	0.18561	0.15372	0.26901	1	0.0004
@@ -16389,6 +16389,6 @@ ttttttg	0.25647	0.20989	0.19724	0.33640	1	0.0006
 ttttttt	0.10062	0.17012	0.08048	0.64878	1	0.0039
 ; Sum	5176.82256	3125.12791	3002.58029	5079.46924	16384
 ; P_res	0.31597	0.19074	0.18326	0.31003
-; Job started	2026-05-11 10:19:14.061986
-; Job done	2026-05-11 10:19:14.832802
-; Job duration	0.771 seconds
+; Job started	2026-05-18 10:33:23.833519
+; Job done	2026-05-18 10:33:24.611543
+; Job duration	0.778 seconds
