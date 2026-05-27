@@ -27,7 +27,7 @@ def test_kmer_analysis_markov_from_bgfiles(markov_order):
 
     filtered_tsv = (
             output_dir /
-            f"yeast_MET_upstream_mkv{markov_order}_enriched_sig0.tsv"
+            f"yeast_MET_upstream_k6_mkv{markov_order}_enriched_sig0.tsv"
     )
 
     # ------------------------------------------------------------------
@@ -106,7 +106,7 @@ def test_kmer_analysis_markov_from_input(markov_order):
 
     filtered_tsv = (
         output_dir /
-        f"yeast_MET_upstream_mkv{markov_order}_bginput_enriched_sig0.tsv"
+        f"yeast_MET_upstream_k6_mkv{markov_order}_bginput_enriched_sig0.tsv"
     )
 
     # ------------------------------------------------------------------
