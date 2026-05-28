@@ -489,7 +489,6 @@ def main():
         if canon_kmer in dico_canon_kmer:
             # Ignore it
             continue
-
         dico_canon_kmer.add(canon_kmer)
 
         # Occurrence threshold
