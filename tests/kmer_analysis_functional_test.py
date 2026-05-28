@@ -22,12 +22,12 @@ def test_kmer_analysis_markov_from_bgfiles(markov_order):
 
     output_tsv = (
             output_dir /
-            f"yeast_MET_upstream_k6_mkv{markov_order}_enriched.tsv"
+            f"yeast_MET_upstream_k6_2str_mkv{markov_order}_enriched.tsv"
     )
 
     filtered_tsv = (
             output_dir /
-            f"yeast_MET_upstream_k6_mkv{markov_order}_enriched_sig0.tsv"
+            f"yeast_MET_upstream_k6_2str_mkv{markov_order}_enriched_sig0.tsv"
     )
 
     # ------------------------------------------------------------------
@@ -87,7 +87,7 @@ def test_kmer_analysis_markov_from_bgfiles(markov_order):
 
     assert filtered_tsv.stat().st_size > 0
 
-@pytest.mark.parametrize("markov_order", range(1, 5))
+@pytest.mark.parametrize("markov_order", range(0, 5))
 def test_kmer_analysis_markov_from_input(markov_order):
     # ------------------------------------------------------------------
     # Input / output files
@@ -101,12 +101,12 @@ def test_kmer_analysis_markov_from_input(markov_order):
 
     output_tsv = (
         output_dir /
-        f"yeast_MET_upstream_k6_mkv{markov_order}_bginput_enriched.tsv"
+        f"yeast_MET_upstream_k6_2str_mkv{markov_order}_bginput_enriched.tsv"
     )
 
     filtered_tsv = (
         output_dir /
-        f"yeast_MET_upstream_k6_mkv{markov_order}_bginput_enriched_sig0.tsv"
+        f"yeast_MET_upstream_k6_2str_mkv{markov_order}_bginput_enriched_sig0.tsv"
     )
 
     # ------------------------------------------------------------------
@@ -169,14 +169,14 @@ def test_kmer_analysis_markov_from_input(markov_order):
     assert filtered_tsv.stat().st_size > 0
 
 
-@pytest.mark.parametrize("markov_order", range(1, 5))
+@pytest.mark.parametrize("markov_order", range(0, 5))
 def test_oligo_analysis_markov_from_input(markov_order):
     # ------------------------------------------------------------------
     # Input / output files
     # ------------------------------------------------------------------
 
 
-    output_dir = Path("results/oligo-analysis-markov-series/bg-from-input")
+    output_dir = Path("results/oligo-analysis/bg-from-input")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     input_fasta = "data/seq/yeast_MET_upstream.fasta"
@@ -184,7 +184,7 @@ def test_oligo_analysis_markov_from_input(markov_order):
 
     output_tsv = (
         output_dir /
-        f"oligos_yeast_MET_upstream_k6_mkv{markov_order}_bginput_enriched.tsv"
+        f"oligos_yeast_MET_upstream_k6_2str_mkv{markov_order}_bginput_enriched.tsv"
     )
 
     # ------------------------------------------------------------------
@@ -221,26 +221,21 @@ def test_oligo_analysis_markov_from_input(markov_order):
 #    assert result1.returncode == 0
     assert output_tsv.exists()
 
-@pytest.mark.parametrize("markov_order", range(1, 5))
-def test_oligo_analysis_markov_from_file(markov_order):
+@pytest.mark.parametrize("k", range(1, 2))
+def test_oligo_analysis_bg_upstream_noorf(k):
     # ------------------------------------------------------------------
     # Input / output files
     # ------------------------------------------------------------------
 
 
-    output_dir = Path("results/oligo-analysis-markov-series/bg-from-file")
+    output_dir = Path("results/oligo-analysis/bg-upstream-noorf")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     input_fasta = "data/seq/yeast_MET_upstream.fasta"
 
-    background_model = (
-        f"data/bg-models/"
-        f"yeast_all-upstream-noorf_mkv{markov_order}.tsv"
-    )
-
     output_tsv = (
         output_dir /
-        f"oligos_yeast_MET_upstream_k6_mkv{markov_order}_bginput_enriched.tsv"
+        f"oligos_yeast_MET_upstream_k{k}_2str_bg-upstream-noorf_enriched.tsv"
     )
 
     # ------------------------------------------------------------------
@@ -254,7 +249,8 @@ def test_oligo_analysis_markov_from_file(markov_order):
         " -format fasta"
         " -l 6"
         " -2str"
-        f" -markov {markov_order}"
+        " -bg upstream-noorf"
+        " -org Saccharomyces_cerevisiae"
         " -return freq,occ,proba,rank"
         " -seqtype dna"
         " -pseudo 0"
