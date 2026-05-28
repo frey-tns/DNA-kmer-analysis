@@ -17,7 +17,7 @@ def test_kmer_analysis_markov_from_bgfiles(markov_order):
 
     background_model = (
         f"data/bg-models/"
-        f"yeast_all-upstream-noorf_Markov_mkv{markov_order}.tsv"
+        f"yeast_all-upstream-noorf_mkv{markov_order}.tsv"
     )
 
     output_tsv = (
