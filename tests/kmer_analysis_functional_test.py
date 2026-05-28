@@ -10,19 +10,19 @@ def test_kmer_analysis_markov_from_bgfiles(markov_order):
     # Input / output files
     # ------------------------------------------------------------------
 
-    output_dir = Path("results/kmer-analysis-markov-series")
+    output_dir = Path("results/kmer-analysis-markov-series/bg-from-file")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     input_fasta = "data/seq/yeast_MET_upstream.fasta"
 
     background_model = (
         f"data/bg-models/"
-        f"yeast_all-upstream-noorf_Markov_mkv{markov_order}.tsv"
+        f"yeast_all-upstream-noorf_mkv{markov_order}.tsv"
     )
 
     output_tsv = (
             output_dir /
-            f"yeast_MET_upstream_mkv{markov_order}_enriched.tsv"
+            f"yeast_MET_upstream_k6_mkv{markov_order}_enriched.tsv"
     )
 
     filtered_tsv = (
@@ -42,7 +42,7 @@ def test_kmer_analysis_markov_from_bgfiles(markov_order):
         "--background", background_model,
         "--return",
         "occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig",
-        "--sort", "sig",
+        "--sort", "alpha",
         "-o", str(output_tsv),
     ]
 
@@ -93,7 +93,7 @@ def test_kmer_analysis_markov_from_input(markov_order):
     # Input / output files
     # ------------------------------------------------------------------
 
-    output_dir = Path("results/kmer-analysis-markov-series")
+    output_dir = Path("results/kmer-analysis-markov-series/bg-from-input")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     input_fasta = "data/seq/yeast_MET_upstream.fasta"
@@ -101,7 +101,7 @@ def test_kmer_analysis_markov_from_input(markov_order):
 
     output_tsv = (
         output_dir /
-        f"yeast_MET_upstream_mkv{markov_order}_bginput_enriched.tsv"
+        f"yeast_MET_upstream_k6_mkv{markov_order}_bginput_enriched.tsv"
     )
 
     filtered_tsv = (
@@ -121,7 +121,7 @@ def test_kmer_analysis_markov_from_input(markov_order):
         "--markov-order", str(markov_order),
         "--return",
         "occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig",
-        "--sort", "sig",
+        "--sort", "alpha",
         "-o", str(output_tsv),
     ]
 

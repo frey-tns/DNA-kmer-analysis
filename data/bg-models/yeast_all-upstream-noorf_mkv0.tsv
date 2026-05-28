@@ -1,0 +1,11 @@
+; markov-from-seq	markov-from-seq -i data/seq/yeast_all-upstream-noorf.fasta.gz -m 0 -o results/bg-models/yeast_all-upstream-noorf_mkv0.tsv
+;
+; Program version	0.1
+; Input file	data/seq/yeast_all-upstream-noorf.fasta.gz
+#pr\su 	a	c	g	t	Sum	P_prefix
+.	0.32323	0.18069	0.17446	0.32162	1	1.0000e+00
+; Sum	0.32323	0.18069	0.17446	0.32162	1
+; P_res	0.32323	0.18069	0.17446	0.32162
+; Job started	2026-05-28 07:12:07.651942
+; Job done	2026-05-28 07:12:08.287927
+; Job duration	0.636 seconds
