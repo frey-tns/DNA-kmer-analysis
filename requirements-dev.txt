@@ -1,2 +1,3 @@
 pdoc
 pytest>=9.0.3
+PyYAML
