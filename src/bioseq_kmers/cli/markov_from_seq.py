@@ -249,7 +249,7 @@ def main():
                 row_sum += p
 
             ## JvH : to do: handle the case of m=0 by printing out a dot instead of an empty prefix
-            tsv_file.write(f"{display_prefix.lower()}\t{'\t'.join(f'{p:.5f}' for p in row_prob)}\t{row_sum:.0f}\t{P_prefix:.4f}\n")
+            tsv_file.write(f"{display_prefix.lower()}\t{'\t'.join(f'{p:.5f}' for p in row_prob)}\t{row_sum:.0f}\t{P_prefix:.4e}\n")
 
         # Global sums
         tsv_file.write(f"; Sum\t"
