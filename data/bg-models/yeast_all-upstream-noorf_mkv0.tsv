@@ -1,4 +1,4 @@
-; markov-from-seq	markov-from-seq -i data/seq/yeast_all-upstream-noorf.fasta.gz -m 0 -o data/bg-models/yeast_all-upstream-noorf_Markov_mkv0.tsv
+; markov-from-seq	markov-from-seq -i data/seq/yeast_all-upstream-noorf.fasta.gz -m 0 -o results/bg-models/yeast_all-upstream-noorf_mkv0.tsv
 ;
 ; Program version	0.1
 ; Input file	data/seq/yeast_all-upstream-noorf.fasta.gz
@@ -6,6 +6,6 @@
 .	0.32323	0.18069	0.17446	0.32162	1	1.0000e+00
 ; Sum	0.32323	0.18069	0.17446	0.32162	1
 ; P_res	0.32323	0.18069	0.17446	0.32162
-; Job started	2026-05-28 06:47:26.943231
-; Job done	2026-05-28 06:47:27.512987
-; Job duration	0.570 seconds
+; Job started	2026-05-28 06:59:19.132298
+; Job done	2026-05-28 06:59:19.728377
+; Job duration	0.596 seconds
