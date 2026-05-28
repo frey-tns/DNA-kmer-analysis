@@ -199,7 +199,7 @@ def test_oligo_analysis_markov_from_input(markov_order):
         " -l 6"
         " -2str"
         f" -markov {markov_order}"
-        " -return freq,occ,proba,rank"
+        " -return freq,occ,proba"
         " -seqtype dna"
         " -pseudo 0"
         f" -o {output_tsv}"
@@ -221,7 +221,7 @@ def test_oligo_analysis_markov_from_input(markov_order):
 #    assert result1.returncode == 0
     assert output_tsv.exists()
 
-@pytest.mark.parametrize("k", range(1, 2))
+@pytest.mark.parametrize("k", range(1, 9))
 def test_oligo_analysis_bg_upstream_noorf(k):
     # ------------------------------------------------------------------
     # Input / output files
@@ -247,11 +247,11 @@ def test_oligo_analysis_bg_upstream_noorf(k):
         "rsat oligo-analysis -v 1"
         f" -i {input_fasta}"
         " -format fasta"
-        " -l 6"
+        f" -l {k}"
         " -2str"
         " -bg upstream-noorf"
         " -org Saccharomyces_cerevisiae"
-        " -return freq,occ,proba,rank"
+        " -return freq,occ,proba"
         " -seqtype dna"
         " -pseudo 0"
         f" -o {output_tsv}"
