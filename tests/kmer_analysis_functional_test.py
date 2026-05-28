@@ -176,7 +176,7 @@ def test_oligo_analysis_markov_from_input(markov_order):
     # ------------------------------------------------------------------
 
 
-    output_dir = Path("results/oligo-analysis/bg-from-input")
+    output_dir = Path("results/oligo-analysis/yeast_MET_upstream-noorf/bg-from-input")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     input_fasta = "data/seq/yeast_MET_upstream.fasta"
@@ -228,7 +228,7 @@ def test_oligo_analysis_bg_upstream_noorf(k):
     # ------------------------------------------------------------------
 
 
-    output_dir = Path("results/oligo-analysis/bg-upstream-noorf")
+    output_dir = Path("results/oligo-analysis/yeast_MET_upstream-noorf/bg-upstream-noorf")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     input_fasta = "data/seq/yeast_MET_upstream.fasta"
