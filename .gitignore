@@ -225,3 +225,5 @@ purgatoire
 *.tsv
 .Rproj.user
 .DS_Store
+
+results/

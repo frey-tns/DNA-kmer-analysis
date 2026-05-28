@@ -193,15 +193,17 @@ def parse_return_option(return_str):
         Args:
             return_str (str or None): Comma-separated string of requested fields
                 (e.g. "occ,exp_freq,obs_freq"). If None, default fields are used.
+
         Returns:
             list of str: Cleaned list of requested output fields.
+
         Examples:
             >>> parse_return_option("occ, exp_freq, obs_freq")
             ['occ', 'exp_freq', 'obs_freq']
             >>> parse_return_option(None)
             ['occ', 'obs_freq']
         """
-    # If user give nothing
+    # Default fields if not specified by user
     if return_str is None:
         # Return occ and obs freq (default field)
         return _DEFAULT_FIELDS
@@ -312,11 +314,12 @@ def main():
     ## OUTPUT DIRECTORY FILE
 
     # Specify which command-line options the program is willing to accept
-#    parser = argparse.ArgumentParser(description="k-mer analysis")
+
     # Print a detailed description from the pydoc
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
+
     # Define args used by the user (here output path)
     parser.add_argument("-i", "--input",
                         required=True,
@@ -376,7 +379,7 @@ def main():
         tracemalloc.start()
 
 
-    # Define variable to use the value in the script
+    # Define variables
     input_file = args.input
     kmer_length = args.kmer_length
     markov_order = args.markov_order
@@ -387,15 +390,16 @@ def main():
     fields_compute = resolve_dependencies(requested_fields)
 
     # Fields requiring a background model
-    need_background = any(field in fields_compute for field in ["exp_freq", "exp_occ", "occ_P", "occ_E", "occ_sig"])
+    need_background = any(field in fields_compute
+                          for field in ["exp_freq", "exp_occ", "occ_P", "occ_E", "occ_sig"])
 
 
-    ## CONDITION: does the files already exist ?
+    ## CONDITION: does the file already exist ?
 
     # Extract the folder from the full path
     folder = os.path.dirname(output_file)
 
-    # If the folder is not empty and doesn't already exist :
+    # Create output folder if it does not exist yet
     if folder and not os.path.exists(folder):
         # Warning message
         print(f"{Fore.YELLOW}Creating folder {folder}")
@@ -403,7 +407,7 @@ def main():
         os.makedirs(folder)
 
     #############################################
-    #   Defined the address of the fasta file   #
+    #   Read the input sequence file
     #############################################
     # Input URL of the FASTA file
     fasta_file = input_file
@@ -430,10 +434,11 @@ def main():
                                  f"Please provide --markov-order or --background")
 
             bg_order = args.markov_order
-            # Extract information from markov_model (matrix)
+
+            # Estimate the parameters of the Markov model from the input sequences
             matrix, total_all, context_counts = bg.markov_model(sequences, bg_order)
 
-            # Transforms the number of occurrences into P(prefix)
+            # Transform the number of occurrences into P(prefix)
             prefixes_prob = {prefix: context_counts[prefix] / total_all for prefix in context_counts.keys()}
 
             # Construction of the Markov model
