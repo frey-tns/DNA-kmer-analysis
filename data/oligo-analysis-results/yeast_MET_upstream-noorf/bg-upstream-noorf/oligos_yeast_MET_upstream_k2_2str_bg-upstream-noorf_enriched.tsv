@@ -1,0 +1,76 @@
+; oligo-analysis  -v 1 -i data/seq/yeast_MET_upstream.fasta -format fasta -l 2 -2str -bg upstream-noorf -org Saccharomyces_cerevisiae -return freq,occ,proba -seqtype dna -pseudo 0 -o results/oligo-analysis/yeast_MET_upstream-noorf/bg-upstream-noorf/oligos_yeast_MET_upstream_k2_2str_bg-upstream-noorf_enriched.tsv
+; Citation: van Helden et al. (1998). J Mol Biol 281(5), 827-42. 
+; Program version              	1.169
+; Slow counting mode           
+; Detection of over-represented words (right-tail test)
+; Oligomer length              	2
+; Input file                   	data/seq/yeast_MET_upstream.fasta
+; Input format                 	fasta
+; Output file                  	results/oligo-analysis/yeast_MET_upstream-noorf/bg-upstream-noorf/oligos_yeast_MET_upstream_k2_2str_bg-upstream-noorf_enriched.tsv
+; Count overlapping matches
+; Counted on both strands
+; 	grouped by pairs of reverse complements
+; Background model             	upstream-noorf
+; Organism                     	Saccharomyces_cerevisiae
+; Background estimation method 	Frequency file
+; Expected frequency file      	$RSAT/public_html/data/genomes/Saccharomyces_cerevisiae/oligo-frequencies/2nt_upstream-noorf_Saccharomyces_cerevisiae-ovlp-2str.freq
+; Sequence type                	DNA
+; Nb of sequences              	19
+; Sum of sequence lengths      	9485
+; discarded residues           		 (other letters than ACGT)
+; discarded occurrences        		 (contain discarded residues)
+; nb possible positions        	9466
+; total oligo occurrences      	9466
+; alphabet size                	4
+; nb possible oligomers        	10
+; oligomers tested for significance	10
+; Sequences:
+;	MET8	463
+;	MET32	547
+;	MET18	568
+;	MET30	177
+;	MET28	489
+;	MET6	687
+;	MET10	338
+;	MET13	380
+;	MET3	800
+;	MET14	800
+;	MET1	702
+;	MET17	800
+;	MET2	481
+;	MET4	800
+;	MET22	215
+;	MET7	250
+;	MET31	161
+;	MET12	384
+;	MET16	443
+;
+; column headers
+;	1	seq            	oligomer sequence
+;	2	id             	oligomer identifier
+;	3	obs_freq       	observed relative frequency
+;	4	exp_freq       	expected relative frequency
+;	5	occ            	observed occurrences
+;	6	exp_occ        	expected occurrences
+;	7	occ_P          	occurrence probability (binomial)
+;	8	occ_E          	E-value for occurrences (binomial)
+;	9	occ_sig        	occurrence significance (binomial)
+#seq	id	obs_freq	exp_freq	occ	exp_occ	occ_P	occ_E	occ_sig
+aa	aa|tt	0.2215296851891	0.2390476237809	2097	2262.82	0.99997	1.0e+01	-1.00
+ac	ac|gt	0.1140925417283	0.1026100555475	1080	971.31	0.00015	1.5e-03	2.82
+ag	ag|ct	0.1134586942742	0.1139206828058	1074	1078.37	0.56103	5.6e+00	-0.75
+at	at|at	0.0943376294105	0.0945381833483	893	894.90	0.53170	5.3e+00	-0.73
+ca	ca|tg	0.1239171772660	0.1144547874764	1173	1083.43	0.00221	2.2e-02	1.66
+cc	cc|gg	0.0642298753433	0.0669751353071	608	633.99	0.86219	8.6e+00	-0.94
+cg	cg|cg	0.0301077540672	0.0298207336650	285	282.28	0.44304	4.4e+00	-0.65
+ga	ga|tc	0.1111345869427	0.1120728529373	1052	1060.88	0.61862	6.2e+00	-0.79
+gc	gc|gc	0.0361293048806	0.0367183707820	342	347.58	0.62723	6.3e+00	-0.80
+ta	ta|ta	0.0910627508980	0.0898415743497	862	850.44	0.34397	3.4e+00	-0.54
+; Host name	caminante-4.local
+; Job started	2026-05-30.092211
+; Job done	2026-05-30.092211
+; Seconds	0.05
+;	user	0.05
+;	system	0.01
+;	cuser	0
+;	csystem	0
