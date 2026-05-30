@@ -4,13 +4,14 @@ from pathlib import Path
 import pytest
 
 
+@pytest.mark.parametrize("strand", ["both", "single"])
 @pytest.mark.parametrize("markov_order", range(0, 6))
-def test_kmer_analysis_markov_from_bgfiles(markov_order):
+def test_kmer_analysis_markov_from_bgfiles(markov_order, strand):
     # ------------------------------------------------------------------
     # Input / output files
     # ------------------------------------------------------------------
 
-    output_dir = Path("results/kmer-analysis-markov-series/bg-from-file")
+    output_dir = Path("results/kmer-analysis/yeast_MET_upstream-noorf/bg-from-file")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     input_fasta = "data/seq/yeast_MET_upstream.fasta"
@@ -22,7 +23,7 @@ def test_kmer_analysis_markov_from_bgfiles(markov_order):
 
     output_tsv = (
             output_dir /
-            f"yeast_MET_upstream_k6_2str_mkv{markov_order}_enriched.tsv"
+            f"yeast_MET_upstream_k6_str-{strand}_mkv{markov_order}_enriched.tsv"
     )
 
     # filtered_tsv = (
@@ -38,7 +39,7 @@ def test_kmer_analysis_markov_from_bgfiles(markov_order):
         "kmer-analysis",
         "-i", input_fasta,
         "-k", "6",
-        "-s", "both",
+        "-s", strand,
         "--background", background_model,
         "--return",
         "occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig",
@@ -87,13 +88,14 @@ def test_kmer_analysis_markov_from_bgfiles(markov_order):
 
     # assert filtered_tsv.stat().st_size > 0
 
+@pytest.mark.parametrize("strand", ["both", "single"])
 @pytest.mark.parametrize("markov_order", range(0, 5))
-def test_kmer_analysis_markov_from_input(markov_order):
+def test_kmer_analysis_markov_from_input(markov_order,strand):
     # ------------------------------------------------------------------
     # Input / output files
     # ------------------------------------------------------------------
 
-    output_dir = Path("results/kmer-analysis-markov-series/bg-from-input")
+    output_dir = Path("results/kmer-analysis/yeast_MET_upstream-noorf/bg-from-input")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     input_fasta = "data/seq/yeast_MET_upstream.fasta"
@@ -101,7 +103,7 @@ def test_kmer_analysis_markov_from_input(markov_order):
 
     output_tsv = (
         output_dir /
-        f"yeast_MET_upstream_k6_2str_mkv{markov_order}_bginput_enriched.tsv"
+        f"yeast_MET_upstream_k6_str-{strand}_mkv{markov_order}_bginput_enriched.tsv"
     )
 
     # filtered_tsv = (
@@ -117,7 +119,7 @@ def test_kmer_analysis_markov_from_input(markov_order):
         "kmer-analysis",
         "-i", input_fasta,
         "-k", "6",
-        "-s", "both",
+        "-s", strand,
         "--markov-order", str(markov_order),
         "--return",
         "occ,exp_occ,obs_freq,exp_freq,occ_P,occ_E,occ_sig",
@@ -169,8 +171,9 @@ def test_kmer_analysis_markov_from_input(markov_order):
     # assert filtered_tsv.stat().st_size > 0
 
 
+@pytest.mark.parametrize("strand", ["1str", "2str"])
 @pytest.mark.parametrize("markov_order", range(0, 5))
-def test_oligo_analysis_markov_from_input(markov_order):
+def test_oligo_analysis_markov_from_input(markov_order, strand):
     # ------------------------------------------------------------------
     # Input / output files
     # ------------------------------------------------------------------
@@ -184,7 +187,7 @@ def test_oligo_analysis_markov_from_input(markov_order):
 
     output_tsv = (
         output_dir /
-        f"oligos_yeast_MET_upstream_k6_2str_mkv{markov_order}_bginput_enriched.tsv"
+        f"oligos_yeast_MET_upstream_k6_{strand}_mkv{markov_order}_bginput_enriched.tsv"
     )
 
     # ------------------------------------------------------------------
@@ -197,7 +200,7 @@ def test_oligo_analysis_markov_from_input(markov_order):
         f" -i {input_fasta}"
         " -format fasta"
         " -l 6"
-        " -2str"
+        f" -{strand}"
         f" -markov {markov_order}"
         " -return freq,occ,proba"
         " -seqtype dna"
@@ -221,8 +224,9 @@ def test_oligo_analysis_markov_from_input(markov_order):
 #    assert result1.returncode == 0
     assert output_tsv.exists()
 
+@pytest.mark.parametrize("strand", ["1str", "2str"])
 @pytest.mark.parametrize("k", range(1, 9))
-def test_oligo_analysis_bg_upstream_noorf(k):
+def test_oligo_analysis_bg_upstream_noorf(k, strand):
     # ------------------------------------------------------------------
     # Input / output files
     # ------------------------------------------------------------------
@@ -235,7 +239,7 @@ def test_oligo_analysis_bg_upstream_noorf(k):
 
     output_tsv = (
         output_dir /
-        f"oligos_yeast_MET_upstream_k{k}_2str_bg-upstream-noorf_enriched.tsv"
+        f"oligos_yeast_MET_upstream_k{k}_{strand}_bg-upstream-noorf_enriched.tsv"
     )
 
     # ------------------------------------------------------------------
@@ -248,7 +252,7 @@ def test_oligo_analysis_bg_upstream_noorf(k):
         f" -i {input_fasta}"
         " -format fasta"
         f" -l {k}"
-        " -2str"
+        f" -{strand}"
         " -bg upstream-noorf"
         " -org Saccharomyces_cerevisiae"
         " -return freq,occ,proba"
