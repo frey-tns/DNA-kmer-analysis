@@ -436,7 +436,7 @@ def main():
             bg_order = args.markov_order
 
             # Estimate the parameters of the Markov model from the input sequences
-            matrix, total_all, context_counts = bg.markov_model(sequences, bg_order)
+            matrix, total_all, context_counts = bg.markov_model(sequences, bg_order, strand_mode="single")
 
             # Transform the number of occurrences into P(prefix)
             prefixes_prob = {prefix: context_counts[prefix] / total_all for prefix in context_counts.keys()}
@@ -460,7 +460,12 @@ def main():
     all_exp_freq_dict = {}
 
     if need_background:
-        all_kmers = {kmer: kmer for kmer in observed_kmer_count}
+        all_kmers = {}
+        for kmer in observed_kmer_count.keys():
+            all_kmers[kmer] = kmer
+            if strand_mode == "both":
+                rev = kmers.reverse_complementary(kmer)
+                all_kmers[rev] = rev
 
         all_exp_freq_dict, _ = bg.sequence_probability(all_kmers,model)
 
@@ -506,6 +511,12 @@ def main():
         # Expected frequencies
         if "exp_freq" in fields_compute:
             exp_freq = all_exp_freq_dict[canon_kmer]
+
+            if strand_mode == "both":
+                reverse_kmer = kmers.reverse_complementary(canon_kmer)
+                if reverse_kmer != canon_kmer:
+                    exp_freq += all_exp_freq_dict[reverse_kmer]
+
             row["exp_freq"] = exp_freq
 
         # Expected occurrences
@@ -534,11 +545,11 @@ def main():
         # Stockage in list oligomers
         result_analysis.append(row)
 
-        if args.sort == "alpha":
-            result_analysis.sort(key=lambda r: r["seq"])
+    if args.sort == "alpha":
+        result_analysis.sort(key=lambda r: r["seq"])
 
-        elif args.sort == "sig":
-            result_analysis.sort(key=lambda r: r["occ_sig"], reverse=True)
+    elif args.sort == "sig":
+        result_analysis.sort(key=lambda r: r["occ_sig"], reverse=True)
 
 
     #####################
